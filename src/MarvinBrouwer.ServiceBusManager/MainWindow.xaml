@@ -1,12 +1,97 @@
-﻿<Window x:Class="MarvinBrouwer.ServiceBusManager.MainWindow"
+<Window x:Name="MainWindow1" x:Class="MarvinBrouwer.ServiceBusManager.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MarvinBrouwer.ServiceBusManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="ServiceBus Manager"
+        Icon="/Resources/app-icon.ico"
+        ResizeMode="CanMinimize"
+		SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen">
+	<StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+		<Menu Height="22" Padding="2">
+			<MenuItem x:Name="MenuItemFile" Header="File">
+				<MenuItem x:Name="MenuItemConfigLoad" Header="Load configuration"/>
+				<MenuItem x:Name="MenuItemReload" Header="Reload configuration" IsEnabled="False" />
+				<Separator/>
+				<MenuItem x:Name="MenuItemOpenDownloads" Header="Open downloads">
+					<MenuItem.Icon>
+						<Image Width="15" Height="15" Source="/Resources/Icons/open-folder.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+					</MenuItem.Icon>
+				</MenuItem>
+			</MenuItem>
+			<MenuItem x:Name="MenuItemHelp" Header="Help">
+				<MenuItem x:Name="MenuItemOpenGithub" Header="Open GitHub repo"/>
+				<MenuItem x:Name="MenuItemOpenReadme" Header="Open Readme">
+					<MenuItem.Icon>
+						<Image Width="15" Height="15" Source="/Resources/Icons/info.png" HorizontalAlignment="Center" VerticalAlignment="Center" />
+					</MenuItem.Icon>
+				</MenuItem>
+			</MenuItem>
+		</Menu>
+		<Grid
+			Margin="20"
+			Width="900"
+			Height="550">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="650"></ColumnDefinition>
+				<ColumnDefinition></ColumnDefinition>
+			</Grid.ColumnDefinitions>
+			<TreeView x:Name="AzureLandscape"  IsEnabled="False" />
+			<Grid Margin="20 0 0 0" Grid.Column="1">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="100"></RowDefinition>
+					<RowDefinition></RowDefinition>
+					<RowDefinition Height="50"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Grid Grid.Row="0">
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Button x:Name="ButtonRequeue" Grid.Row="0" Grid.Column="0" Content="Requeue" IsEnabled="False" />
+					<Button x:Name="ButtonDownload" Grid.Row="0" Grid.Column="1" Content="Download" IsEnabled="False" />
+					<Button x:Name="ButtonUpload" Grid.Row="1" Grid.Column="0"  Content="Upload" IsEnabled="False" />
+					<Button x:Name="ButtonClear" Grid.Row="1" Grid.Column="1" Content="Clear" IsEnabled="False" />
+				</Grid>
+				<Border BorderThickness="1" Grid.Row="1" Margin="0,20,0,20">
+					<Border.BorderBrush>
+						<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlLightColorKey}}"/>
+					</Border.BorderBrush>
+				</Border>
+				<ToolBarPanel x:Name="StatusBox" Grid.Row="1" Margin="0,20,0,20">
+				</ToolBarPanel>
+				<Grid Grid.Row="2">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Button x:Name="ButtonReadme" Grid.Column="0" >
+						<Button.Content>
+							<Image HorizontalAlignment="Stretch" Width="35" Source="/Resources/Buttons/info.png" Height="35"></Image>
+						</Button.Content>
+					</Button>
+					<Button x:Name="ButtonReload" Grid.Column="2" IsEnabled="False">
+						<Button.Content>
+							<Image HorizontalAlignment="Stretch" Width="35" Source="/Resources/Buttons/refresh-button.png" Height="35"></Image>
+						</Button.Content>
+					</Button>
+					<Button x:Name="ButtonOpenDownload" Grid.Column="3" >
+						<Button.Content>
+							<Image HorizontalAlignment="Stretch" Width="35" Source="/Resources/Buttons/open-folder.png" Height="35"></Image>
+						</Button.Content>
+					</Button>
+				</Grid>
+			</Grid>
+		</Grid>
+	</StackPanel>
 
-    </Grid>
 </Window>

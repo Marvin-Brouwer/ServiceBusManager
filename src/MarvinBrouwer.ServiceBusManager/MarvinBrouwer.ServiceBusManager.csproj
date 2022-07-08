@@ -11,6 +11,81 @@
 		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
+		<StartupObject>MarvinBrouwer.ServiceBusManager.App</StartupObject>
+		<ApplicationIcon>Resources\app-icon.ico</ApplicationIcon>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="Resources\app-icon.ico" />
+	  <None Remove="Resources\app-icon.png" />
+	  <None Remove="Resources\Buttons\info.png" />
+	  <None Remove="Resources\Buttons\open-folder.png" />
+	  <None Remove="Resources\Buttons\refresh-button.png" />
+	  <None Remove="Resources\Icons\app-icon.png" />
+	  <None Remove="Resources\Icons\dead-letter.png" />
+	  <None Remove="Resources\Icons\info.png" />
+	  <None Remove="Resources\Icons\open-folder.png" />
+	  <None Remove="Resources\Icons\queue.png" />
+	  <None Remove="Resources\Icons\refresh-button.png" />
+	  <None Remove="Resources\Icons\servicebus-loading.png" />
+	  <None Remove="Resources\Icons\servicebus.png" />
+	  <None Remove="Resources\Icons\topic-subscription.png" />
+	  <None Remove="Resources\Icons\topic.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Resources\app-icon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Resources\Buttons\info.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Buttons\open-folder.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Buttons\refresh-button.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\app-icon.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\dead-letter.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\info.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\open-folder.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\queue.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\refresh-button.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\servicebus-loading.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\servicebus.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\topic-subscription.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	  <Resource Include="Resources\Icons\topic.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Resources\app-icon.ico">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	  <Resource Include="Resources\app-icon.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	</ItemGroup>
 
 </Project>
