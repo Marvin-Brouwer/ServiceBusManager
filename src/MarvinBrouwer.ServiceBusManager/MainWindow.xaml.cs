@@ -25,12 +25,11 @@ public partial class MainWindow : Window
 {
 	private readonly AzureSubscriptionService _subscriptionService;
 	private readonly AzureAuthenticationService _azureAuthenticationService;
-	private readonly CancellationTokenSource _applicationCancellationSource;
 	private readonly AzureServiceBusService _serviceBusService;
 	private readonly AzureLandscapeRenderingService _azureLandscapeRenderingService;
 	private readonly LocalStorageService _localStorageService;
 
-	private CancellationToken CancellationToken => _applicationCancellationSource.Token;
+	private CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
 
 	public MainWindow()
 	{
@@ -39,18 +38,17 @@ public partial class MainWindow : Window
 		AppendStatusMessage(@"Loading data...");
 		SelectedItemChanged(null);
 
-		_applicationCancellationSource = new CancellationTokenSource();
 		_azureAuthenticationService = new AzureAuthenticationService();
 		_subscriptionService = new AzureSubscriptionService(_azureAuthenticationService);
 		_serviceBusService = new AzureServiceBusService(_azureAuthenticationService);
 		_azureLandscapeRenderingService = new AzureLandscapeRenderingService(AzureLandscape, _subscriptionService, _serviceBusService);
 		_localStorageService = new LocalStorageService();
 
-		Closing += (_, _) => _applicationCancellationSource.Cancel();
+		Closing += (_, _) => ((App)Application.Current).SignalCancel();
 		Cursor = Cursors.Wait;
 		MenuItemReload.IsEnabled = false;
 		
-		Loaded += WindowLoaded;
+		Loaded += (_, _) => WindowLoaded();
 	}
 
 	#region WindowUtilities
@@ -67,7 +65,7 @@ public partial class MainWindow : Window
 	}
 	#endregion
 
-	private async void WindowLoaded(object sender, RoutedEventArgs e)
+	private async void WindowLoaded()
 	{
 		await _azureAuthenticationService.Authenticate(CancellationToken);
 		_localStorageService.PrepareDownloadFolder();
