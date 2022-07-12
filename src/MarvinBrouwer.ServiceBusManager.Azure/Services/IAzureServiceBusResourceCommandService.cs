@@ -1,13 +1,16 @@
-﻿using MarvinBrouwer.ServiceBusManager.Azure.Models;
+//using MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
+//namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
-internal interface IAzureServiceBusResourceCommandService
-{
-	Task RequeueDistinctBy(MessageHandler resourceData, string propertyName, CancellationToken cancellationToken);
+//internal interface IAzureServiceBusResourceCommandService
+//{
+//	Task RequeueDistinctBy(
+//		MessageHandler resourceData,
+//		string propertyName,
+//		CancellationToken cancellationToken);
 
-	Task QueueMessages(
-		ServiceBusResource selectedResource,
-		List<string> messages,
-		CancellationToken cancellationToken);
-}
+//	Task QueueMessages(
+//		ServiceBusResource selectedResource,
+//		List<string> messages,
+//		CancellationToken cancellationToken);
+//}

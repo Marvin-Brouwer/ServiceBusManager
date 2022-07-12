@@ -12,9 +12,9 @@
         WindowStartupLocation="CenterScreen">
 	<StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
 		<Menu Height="22" Padding="2">
-			<MenuItem x:Name="MenuItemFile" Header="File">
-				<MenuItem x:Name="MenuItemConfigLoad" Header="Load configuration" Click="ShowOpenConfigurationDialog"/>
-				<MenuItem x:Name="MenuItemReload" Header="Reload configuration" IsEnabled="False" Click="ReloadConfiguration"/>
+			<MenuItem x:Name="MenuItemActions" Header="Actions">
+				<MenuItem x:Name="MenuItemReload" Header="Reload all" IsEnabled="False" Click="ReloadAzureLandscape"/>
+				<MenuItem x:Name="MenuItemReloadSelected" Header="Reload selected item" Click="ReloadItem"/>
 				<Separator/>
 				<MenuItem x:Name="MenuItemOpenDownloads" Header="Open downloads" Click="OpenDownloadFolder">
 					<MenuItem.Icon>
@@ -39,7 +39,7 @@
 				<ColumnDefinition Width="650"></ColumnDefinition>
 				<ColumnDefinition></ColumnDefinition>
 			</Grid.ColumnDefinitions>
-			<TreeView x:Name="AzureLandscape"  IsEnabled="False" />
+			<TreeView x:Name="AzureLandscape"  IsEnabled="False" SelectedItemChanged="SelectedItemChanged" />
 			<Grid Margin="20 0 0 0" Grid.Column="1">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="100"></RowDefinition>
@@ -55,10 +55,10 @@
 						<ColumnDefinition></ColumnDefinition>
 						<ColumnDefinition></ColumnDefinition>
 					</Grid.ColumnDefinitions>
-					<Button x:Name="ButtonRequeue" Grid.Row="0" Grid.Column="0" Content="Requeue" IsEnabled="False" Click="ShowRequeueDialog"/>
-					<Button x:Name="ButtonDownload" Grid.Row="0" Grid.Column="1" Content="Download" IsEnabled="False" Click="ShowDownloadDialog"/>
-					<Button x:Name="ButtonUpload" Grid.Row="1" Grid.Column="0"  Content="Upload" IsEnabled="False" Click="ShowUploadDialog" />
-					<Button x:Name="ButtonClear" Grid.Row="1" Grid.Column="1" Content="Clear" IsEnabled="False" Click="ShowClearDialog" />
+					<Button x:Name="ButtonRequeue" Grid.Row="0" Grid.Column="0" Content="Requeue" Click="ShowRequeueDialog"/>
+					<Button x:Name="ButtonDownload" Grid.Row="0" Grid.Column="1" Content="Download" Click="ShowDownloadDialog"/>
+					<Button x:Name="ButtonUpload" Grid.Row="1" Grid.Column="0"  Content="Upload" Click="ShowUploadDialog" />
+					<Button x:Name="ButtonClear" Grid.Row="1" Grid.Column="1" Content="Clear" Click="ShowClearDialog" />
 				</Grid>
 				<Border BorderThickness="1" Grid.Row="1" Margin="0,20,0,20">
 					<Border.BorderBrush>
@@ -77,11 +77,6 @@
 					<Button x:Name="ButtonReadme" Grid.Column="0" Click="ShowReadmeWindow">
 						<Button.Content>
 							<Image HorizontalAlignment="Stretch" Width="35" Source="/Resources/Buttons/info.png" Height="35"></Image>
-						</Button.Content>
-					</Button>
-					<Button x:Name="ButtonReload" Grid.Column="2" IsEnabled="False" Click="ReloadConfiguration">
-						<Button.Content>
-							<Image HorizontalAlignment="Stretch" Width="35" Source="/Resources/Buttons/refresh-button.png" Height="35"></Image>
 						</Button.Content>
 					</Button>
 					<Button x:Name="ButtonOpenDownload" Grid.Column="3" Click="OpenDownloadFolder" >

@@ -1,12 +1,13 @@
+using Microsoft.Azure.Management.ServiceBus.Fluent;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-public sealed record Queue : ServiceBusResource
+public sealed record Queue : AzureResource<IQueue>
 {
-	public Queue(ServiceBus serviceBus, string name) : base(serviceBus, name)
+	public Queue(IQueue queue) : base(queue)
 	{
 		DeadLetter = new QueueDeadLetter(this);
 	}
 
 	public QueueDeadLetter DeadLetter { get; }
-	public override ServiceBusResource GetServiceBusTarget() => this;
 }

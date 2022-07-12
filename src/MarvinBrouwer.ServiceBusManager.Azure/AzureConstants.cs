@@ -1,6 +1,6 @@
 namespace MarvinBrouwer.ServiceBusManager.Azure;
 
-internal static class AzureConstants
+public static class AzureConstants
 {
 	/// <summary>
 	/// This is not allowed to be more than 100, so if we need more we'll need to batch

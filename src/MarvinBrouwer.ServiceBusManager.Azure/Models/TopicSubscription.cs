@@ -1,15 +1,14 @@
+
+using Microsoft.Azure.Management.ServiceBus.Fluent;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-public sealed record TopicSubscription : ServiceBusResource
+public sealed record TopicSubscription : AzureResource<ISubscription>
 {
-	public TopicSubscription(Topic topic, string name) : base(topic.ServiceBus, name)
+	public TopicSubscription(ISubscription subscription) : base(subscription)
 	{
-		Topic = topic;
-		DeadLetter = new TopicSubscriptionDeadLetter(this, topic);
+		DeadLetter = new TopicSubscriptionDeadLetter(this);
 	}
-
-	public Topic Topic { get; }
+	
 	public TopicSubscriptionDeadLetter DeadLetter { get; }
-
-	public override ServiceBusResource GetServiceBusTarget() => Topic;
 }
