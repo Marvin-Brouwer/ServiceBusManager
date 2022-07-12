@@ -18,7 +18,7 @@ Also, if we ever publish this to the open-source community we don't have to look
 	<img src="./Resources/Icons/open-folder.png" alt="" width="18" height="18" class="icon"/>The open download folder icon
 </a><br/>
 <a href="https://www.flaticon.com/free-icon/hub_984448">
-	<img src="./Resources/Icons/servicebus.png" alt="" width="18" height="18" class="icon"/>Both the servicebus icons
+	<img src="./Resources/Icons/servicebus.png" alt="" width="18" height="18" class="icon"/>The servicebus icons
 </a><br/>
 <a href="https://www.flaticon.com/premium-icon/book_2702096">
 	<img src="./Resources/Icons/topic.png" alt="" width="18" height="18" class="icon"/>The topic icon

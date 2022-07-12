@@ -18,6 +18,9 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 	public QueueTreeViewItem(Queue queue)
 	{
 		DisplayName = queue.InnerResource.Name;
+		Label = nameof(queue);
+		IconUrl = "/Resources/Icons/queue.png";
+
 		Identifier = $"ID{new Guid(queue.InnerResource.Key):N}";
 		SetHeaderValue();
 		IsEnabled = true;
@@ -40,6 +43,8 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 		public QueueDeadLetterTreeViewItem(Queue queue)
 		{
 			DisplayName = AzureConstants.DeadLetterPathSegment;
+			IconUrl = "/Resources/Icons/dead-letter.png";
+
 			Identifier = $"ID{new Guid(queue.InnerResource.Key):N}_dl";
 			IsEnabled = true;
 			SetHeaderValue();

@@ -156,7 +156,7 @@ public partial class MainWindow : Window
 
 	private void ShowReadmeWindow(object sender, RoutedEventArgs e)
 	{
-		// TODO Readme window
+		// TODO Readme window https://github.com/whistyun/MdXaml
 		throw new System.NotImplementedException();
 	}
 

@@ -17,6 +17,9 @@ internal sealed class ServiceBusTreeViewItem : BaseTreeViewItem
 	public ServiceBusTreeViewItem(ServiceBus serviceBus)
 	{
 		DisplayName = serviceBus.InnerResource.Name;
+		Label = serviceBus.InnerResource.ResourceGroupName;
+		IconUrl = "/Resources/Icons/servicebus.png";
+
 		Identifier = $"ID{new Guid(serviceBus.InnerResource.Key):N}";
 
 		ServiceBus = serviceBus;
@@ -29,23 +32,4 @@ internal sealed class ServiceBusTreeViewItem : BaseTreeViewItem
 	public override bool CanRequeue => false;
 
 	public ServiceBus ServiceBus { get; }
-
-	protected override UIElement RenderHeader()
-	{
-		var mainLabel = base.RenderHeader();
-		var subLabel = new Label
-		{
-			Content = " | " + ServiceBus.InnerResource.ResourceGroupName,
-			HorizontalAlignment = HorizontalAlignment.Right,
-			HorizontalContentAlignment = HorizontalAlignment.Right,
-			FontStyle = FontStyles.Italic,
-			Foreground = SystemColors.ActiveBorderBrush,
-			Padding = new Thickness(0)
-		};
-		return new StackPanel
-		{
-			Orientation = Orientation.Horizontal,
-			Children = { mainLabel, subLabel }
-		};
-	}
 }

@@ -17,6 +17,9 @@ internal sealed class TopicTreeViewItem : BaseTreeViewItem
 	public TopicTreeViewItem(Topic topic)
 	{
 		DisplayName = topic.InnerResource.Name;
+		Label = nameof(topic);
+		IconUrl = "/Resources/Icons/topic.png";
+
 		Identifier = $"ID{new Guid(topic.InnerResource.Key):N}";
 		SetHeaderValue();
 

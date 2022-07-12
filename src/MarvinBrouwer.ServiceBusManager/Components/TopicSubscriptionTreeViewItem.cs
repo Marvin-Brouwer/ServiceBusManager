@@ -19,6 +19,8 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription)
 	{
 		DisplayName = topicSubscription.InnerResource.Name;
+		IconUrl = "/Resources/Icons/topic-subscription.png";
+
 		Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}";
 		IsEnabled = true;
 		SetHeaderValue();
@@ -41,6 +43,8 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 		public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription)
 		{
 			DisplayName = AzureConstants.DeadLetterPathSegment;
+			IconUrl = "/Resources/Icons/dead-letter.png";
+
 			Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}_dl";
 			IsEnabled = true;
 			SetHeaderValue();
