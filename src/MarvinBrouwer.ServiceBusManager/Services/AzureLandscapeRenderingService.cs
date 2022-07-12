@@ -48,7 +48,7 @@ internal sealed class AzureLandscapeRenderingService
 		}
 	}
 
-	private async Task LoadSubscriptionContents(SubscriptionTreeViewItem subscriptionTreeViewItem, CancellationToken cancellationToken)
+	public async Task LoadSubscriptionContents(SubscriptionTreeViewItem subscriptionTreeViewItem, CancellationToken cancellationToken)
 	{
 		subscriptionTreeViewItem.IsEnabled = false;
 		var serviceBuses = _serviceBusService.ListServiceBuses(subscriptionTreeViewItem.Subscription, cancellationToken);
@@ -67,7 +67,7 @@ internal sealed class AzureLandscapeRenderingService
 		subscriptionTreeViewItem.IsEnabled = true;
 	}
 
-	private async Task LoadServiceBusResources(ServiceBusTreeViewItem serviceBusTreeViewItem,
+	public async Task LoadServiceBusResources(ServiceBusTreeViewItem serviceBusTreeViewItem,
 		CancellationToken cancellationToken)
 	{
 		serviceBusTreeViewItem.IsEnabled = false;
@@ -92,7 +92,7 @@ internal sealed class AzureLandscapeRenderingService
 		serviceBusTreeViewItem.IsEnabled = true;
 	}
 
-	private async Task LoadTopicSubscriptions(TopicTreeViewItem topicTreeViewItem, CancellationToken cancellationToken)
+	public async Task LoadTopicSubscriptions(TopicTreeViewItem topicTreeViewItem, CancellationToken cancellationToken)
 	{
 		topicTreeViewItem.IsEnabled = false;
 		var topicSubscriptions = _serviceBusService.ListTopicSubscriptions(topicTreeViewItem.Topic, cancellationToken);

@@ -22,6 +22,7 @@ internal sealed class ServiceBusTreeViewItem : BaseTreeViewItem
 		ServiceBus = serviceBus;
 	}
 
+	public override bool CanReload => true;
 	public override bool CanClear => false;
 	public override bool CanUpload => false;
 	public override bool CanDownload => false;

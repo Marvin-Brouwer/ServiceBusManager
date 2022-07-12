@@ -115,12 +115,28 @@ public partial class MainWindow : Window
 		if (!AzureLandscapeIsLoading) AppendStatusMessage(@"Done!");
 	}
 
-	private void ReloadItem(object sender, RoutedEventArgs e)
+	private async void ReloadItem(object sender, RoutedEventArgs e)
 	{
 		if (AzureLandscape.SelectedItem is null) return;
+		if (AzureLandscape.SelectedItem is not BaseTreeViewItem { CanReload: true } baseTreeViewItem) return;
 
-		// TODO reload item
-		throw new System.NotImplementedException();
+		baseTreeViewItem.IsEnabled = false;
+		baseTreeViewItem.IsExpanded = false;
+
+		if (AzureLandscape.SelectedItem is SubscriptionTreeViewItem subscriptionTreeViewItem)
+		{
+			await _azureLandscapeRenderingService.LoadSubscriptionContents(subscriptionTreeViewItem, CancellationToken);
+		}
+
+		if (AzureLandscape.SelectedItem is ServiceBusTreeViewItem serviceBusTreeViewItem)
+		{
+			await _azureLandscapeRenderingService.LoadServiceBusResources(serviceBusTreeViewItem, CancellationToken);
+		}
+
+		if (AzureLandscape.SelectedItem is TopicTreeViewItem topicTreeViewItem)
+		{
+			await _azureLandscapeRenderingService.LoadTopicSubscriptions(topicTreeViewItem, CancellationToken);
+		}
 	}
 
 	private void OpenDownloadFolder(object sender, RoutedEventArgs e)
@@ -191,12 +207,17 @@ public partial class MainWindow : Window
 
 	private void SelectedItemChanged(BaseTreeViewItem? treeViewItem)
 	{
-		ButtonClear.IsEnabled = treeViewItem?.CanClear ?? false;
-		ButtonDownload.IsEnabled = treeViewItem?.CanDownload ?? false;
-		ButtonRequeue.IsEnabled = treeViewItem?.CanRequeue ?? false;
-		ButtonUpload.IsEnabled = treeViewItem?.CanUpload ?? false;
+		ButtonClear.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+			&& treeViewItem.IsEnabled && treeViewItem.CanClear;
+		ButtonDownload.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+			&& treeViewItem.IsEnabled && treeViewItem.CanDownload;
+		ButtonRequeue.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+			&& treeViewItem.IsEnabled && treeViewItem.CanRequeue;
+		ButtonUpload.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+			&& treeViewItem.IsEnabled && treeViewItem.CanUpload;
 
-		MenuItemReloadSelected.IsEnabled = treeViewItem is not null;
+		MenuItemReloadSelected.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+			&& treeViewItem.IsEnabled && treeViewItem.CanReload;
 
 		CommandManager.InvalidateRequerySuggested();
 	}

@@ -18,14 +18,6 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 {
 	private async Task<TokenCloudCredentials> GetAccessToken(CancellationToken cancellationToken)
 	{
-		// Todo store token locally
-		
-		var token = await RequestAccessToken(cancellationToken);
-		return token;
-	}
-
-	private async Task<TokenCloudCredentials> RequestAccessToken(CancellationToken cancellationToken)
-	{
 		var azureCredentials = new DefaultAzureCredential(new DefaultAzureCredentialOptions
 		{
 			ExcludeInteractiveBrowserCredential = false,
@@ -53,7 +45,7 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 		var subscriptionClient = new Microsoft.Azure.Management.Subscription.SubscriptionClient(new TokenCredentials(defaultCloudToken.Token));
 		var tenants = await subscriptionClient.Tenants.ListAsync(cancellationToken);
 		var mainTenant = tenants.FirstOrDefault();
-		// todo validate tenant not null
+		if (mainTenant is null) throw new NotSupportedException("The primary tenant cannot be null");
 
 		var azureCredentials = new AzureCredentials(
 			tokenCredentials,

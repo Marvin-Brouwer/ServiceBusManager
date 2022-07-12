@@ -27,6 +27,7 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 		Items.Add(new QueueDeadLetterTreeViewItem(queue));
 	}
 
+	public override bool CanReload => false;
 	public override bool CanClear => true;
 	public override bool CanUpload => true;
 	public override bool CanDownload => true;
@@ -47,6 +48,7 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 			DeadLetter = queue.DeadLetter;
 		}
 
+		public override bool CanReload => false;
 		public override bool CanClear => true;
 		public override bool CanUpload => false;
 		public override bool CanDownload => true;

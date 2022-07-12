@@ -5,12 +5,9 @@
 
 //internal class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
 //{
-//	// TODO settings
-//	private readonly int _messageGetCount;
 //	private readonly IAzureServiceBusClientFactory _clientFactory;
 
 //	public AzureServiceBusResourceQueryService(
-//		//IOption configuration,
 //		IAzureServiceBusClientFactory clientFactory)
 //	{
 //		_clientFactory = clientFactory;
@@ -93,7 +90,7 @@
 //			client,
 //			selectedResource,
 //			subscriptionClient,
-//			await subscriptionClient.ReceiveMessagesAsync(_messageGetCount, null, cancellationToken)
+//			await subscriptionClient.ReceiveMessagesAsync(AzureConstants.GetMessageCount, null, cancellationToken)
 //		);
 //	}
 
@@ -123,6 +120,6 @@
 
 //		await Task.Delay(lockWaitDelay, cancellationToken);
 
-//		return await queueClient.ReceiveMessagesAsync(_messageGetCount, null, cancellationToken);
+//		return await queueClient.ReceiveMessagesAsync(AzureConstants.GetMessageCount, null, cancellationToken);
 //	}
 //}

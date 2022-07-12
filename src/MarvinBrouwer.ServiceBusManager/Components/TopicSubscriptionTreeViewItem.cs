@@ -27,6 +27,8 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 
 		Items.Add(new TopicSubscriptionDeadLetterTreeViewItem(topicSubscription));
 	}
+
+	public override bool CanReload => false;
 	public override bool CanClear => true;
 	public override bool CanUpload => false;
 	public override bool CanDownload => true;
@@ -43,14 +45,17 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 			IsEnabled = true;
 			SetHeaderValue();
 
-			TopicSubscription = topicSubscription.DeadLetter;
+			TopicSubscription = topicSubscription;
+			DeadLetter = topicSubscription.DeadLetter;
 		}
 
+		public override bool CanReload => false;
 		public override bool CanClear => true;
 		public override bool CanUpload => false;
 		public override bool CanDownload => true;
 		public override bool CanRequeue => true;
 
-		public TopicSubscriptionDeadLetter TopicSubscription { get; }
+		public TopicSubscription TopicSubscription { get; }
+		public TopicSubscriptionDeadLetter DeadLetter { get; }
 	}
 }

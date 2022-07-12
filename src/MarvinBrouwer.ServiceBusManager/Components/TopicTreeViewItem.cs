@@ -23,6 +23,7 @@ internal sealed class TopicTreeViewItem : BaseTreeViewItem
 		Topic = topic;
 	}
 
+	public override bool CanReload => true;
 	public override bool CanClear => false;
 	public override bool CanUpload => true;
 	public override bool CanDownload => false;

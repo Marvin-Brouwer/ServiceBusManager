@@ -14,6 +14,7 @@ internal abstract class BaseTreeViewItem : TreeViewItem
 {
 	protected string DisplayName { get; init; } = string.Empty;
 
+	public abstract bool CanReload { get; }
 	public abstract bool CanClear { get; }
 	public abstract bool CanUpload { get; }
 	public abstract bool CanDownload { get; }
