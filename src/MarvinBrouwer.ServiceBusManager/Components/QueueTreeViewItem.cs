@@ -13,7 +13,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class QueueTreeViewItem : BaseTreeViewItem
+internal sealed class QueueTreeViewItem : ResourceTreeViewItem
 {
 	public QueueTreeViewItem(Queue queue) : base(queue.InnerResource)
 	{
@@ -39,7 +39,7 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 	public Queue Queue { get; }
 }
 
-internal sealed class QueueDeadLetterTreeViewItem : BaseTreeViewItem
+internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
 {
 	public QueueDeadLetterTreeViewItem(Queue queue) : base(queue.InnerResource)
 	{
@@ -52,6 +52,7 @@ internal sealed class QueueDeadLetterTreeViewItem : BaseTreeViewItem
 
 		Queue = queue;
 		DeadLetter = queue.DeadLetter;
+		IsDeadLetter = true;
 	}
 
 	public override bool CanReload => false;

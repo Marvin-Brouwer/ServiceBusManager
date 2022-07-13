@@ -14,7 +14,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
+internal sealed class TopicSubscriptionTreeViewItem : ResourceTreeViewItem
 {
 	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription.InnerResource)
 	{
@@ -34,12 +34,12 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 	public override bool CanClear => true;
 	public override bool CanUpload => false;
 	public override bool CanDownload => true;
-	public override bool CanRequeue => false;
+	public override bool CanRequeue => true;
 
 	public TopicSubscription TopicSubscription { get; }
 }
 
-internal sealed class TopicSubscriptionDeadLetterTreeViewItem : BaseTreeViewItem
+internal sealed class TopicSubscriptionDeadLetterTreeViewItem : ResourceTreeViewItem
 {
 	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription.InnerResource)
 	{
@@ -53,6 +53,7 @@ internal sealed class TopicSubscriptionDeadLetterTreeViewItem : BaseTreeViewItem
 		Topic = topic;
 		TopicSubscription = topicSubscription;
 		DeadLetter = topicSubscription.DeadLetter;
+		IsDeadLetter = true;
 	}
 
 	public override bool CanReload => false;

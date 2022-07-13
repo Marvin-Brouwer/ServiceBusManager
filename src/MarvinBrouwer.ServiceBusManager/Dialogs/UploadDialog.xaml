@@ -17,13 +17,13 @@
 		<TextBlock Margin="10,20,10,00"
 				   x:Name="MainQuery"
 		           TextWrapping="Wrap">
-			Do you want to requeue {0} items?
+			Do you want to upload {0} items?
 		</TextBlock>
 		<TextBlock Margin="10,5,10,10"
 		           TextWrapping="Wrap"
 				   Width="500"
 		           FontStyle="Italic">
-			This will queue everything. 
+			This will queue raw data. 
 			Make sure you're uploading the correct data!
 		</TextBlock>
 		<StackPanel x:Name="SubscriptionWarning" Margin="10,10,10,00"

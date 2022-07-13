@@ -30,12 +30,8 @@ internal abstract class BaseTreeViewItem : TreeViewItem
 		set => Name = value;
 	}
 
-	public IResource? Resource { get; }
-
-	protected BaseTreeViewItem(IResource? resource = null)
+	protected BaseTreeViewItem()
 	{
-		Resource = resource;
-
 		IsEnabled = false;
 		FontWeight = FontWeights.Normal;
 

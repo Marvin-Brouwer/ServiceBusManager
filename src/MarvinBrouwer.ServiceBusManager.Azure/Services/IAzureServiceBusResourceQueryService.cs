@@ -5,7 +5,7 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
 public interface IAzureServiceBusResourceQueryService
 {
-	Task<long> GetMessageCount(IResource selectedResource, CancellationToken cancellationToken);
+	Task<long> GetMessageCount(IResource selectedResource, bool countDeadLetter, CancellationToken cancellationToken);
 	// todo change type
-	Task<object> DownloadFullResource(IResource selectedResource, CancellationToken cancellationToken);
+	// Task<object> DownloadFullResource(IResource selectedResource, CancellationToken cancellationToken);
 }

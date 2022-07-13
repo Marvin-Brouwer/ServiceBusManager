@@ -49,6 +49,7 @@ public partial class MainWindow : Window
 		var serviceBusService = new AzureServiceBusService(_azureAuthenticationService);
 		_azureLandscapeRenderingService = new AzureLandscapeRenderingService(AzureLandscape, subscriptionService, serviceBusService);
 		_localStorageService = new LocalStorageService();
+		_resourceQueryService = new AzureServiceBusResourceQueryService();
 
 		Closing += (_, _) => ((App)Application.Current).SignalCancel();
 		Cursor = Cursors.Wait;
@@ -188,13 +189,12 @@ public partial class MainWindow : Window
 
 	private async void ShowRequeueDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
-		if (!treeViewItem.CanRequeue || treeViewItem.Resource is null) return;
+		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
+		if (!treeViewItem.CanRequeue) return;
 
 		ClearStatusPanel();
-		AppendStatusMessage("Getting item count for requeue");
-		// var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
-		var fullCount = 26L;
+		AppendStatusMessage("Getting item count to requeue");
+		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var (requeue, download) = Dialog.ConfirmRequeue(treeViewItem, itemCount, maxItemsReached);
@@ -203,38 +203,69 @@ public partial class MainWindow : Window
 			AppendStatusMessage("Canceled");
 			return;
 		}
+
+		// TODO
 		throw new System.NotImplementedException();
 	}
 
-	private void ShowDownloadDialog(object sender, RoutedEventArgs e)
+	private async void ShowDownloadDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanDownload) return;
 
-		var (requeue, download) = Dialog.ConfirmDownload(treeViewItem, 99 /*todo*/, false);
-		if (!requeue) return;
+		ClearStatusPanel();
+		AppendStatusMessage("Getting item count to download");
+		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
+		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
+		var (requeue, download) = Dialog.ConfirmDownload(treeViewItem, itemCount, maxItemsReached);
+		if (!requeue)
+		{
+			AppendStatusMessage("Canceled");
+			return;
+		}
+
+		// TODO
 		throw new System.NotImplementedException();
 	}
 
-	private void ShowUploadDialog(object sender, RoutedEventArgs e)
+	private async void ShowUploadDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanUpload) return;
 
-		var (requeue, download) = Dialog.ConfirmUpload(treeViewItem, "todo filename.ext" /* todo */, 99 /*todo*/);
-		if (!requeue) return;
+		ClearStatusPanel();
+		AppendStatusMessage("Selecting file(s) to upload");
 
+		// TODO select, unpack, count
+
+		var (requeue, download) = Dialog.ConfirmUpload(treeViewItem, "todo filename.ext" /* todo */, 99 /*todo*/);
+		if (!requeue)
+		{
+			AppendStatusMessage("Canceled");
+			return;
+		}
+
+		// TODO
 		throw new System.NotImplementedException();
 	}
 
-	private void ShowClearDialog(object sender, RoutedEventArgs e)
+	private async void ShowClearDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanClear) return;
 
-		var (requeue, download) = Dialog.ConfirmClear(treeViewItem, 99 /*todo*/, false);
-		if (!requeue) return;
+		ClearStatusPanel();
+		AppendStatusMessage("Getting item count to clear");
+		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
+		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
+
+		var (requeue, download) = Dialog.ConfirmClear(treeViewItem, itemCount, maxItemsReached);
+		if (!requeue)
+		{
+			AppendStatusMessage("Canceled");
+			return;
+		}
 
 		// TODO
 		throw new System.NotImplementedException();
