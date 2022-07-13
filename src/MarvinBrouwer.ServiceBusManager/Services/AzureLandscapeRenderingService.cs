@@ -101,7 +101,7 @@ internal sealed class AzureLandscapeRenderingService
 
 		await foreach (var topicSubscription in topicSubscriptions.WithCancellation(cancellationToken))
 		{
-			var topicSubscriptionTreeViewItem = new TopicSubscriptionTreeViewItem(topicSubscription);
+			var topicSubscriptionTreeViewItem = new TopicSubscriptionTreeViewItem(topicSubscription, topicTreeViewItem.Topic);
 			topicTreeViewItem.Items.Add(topicSubscriptionTreeViewItem);
 		}
 

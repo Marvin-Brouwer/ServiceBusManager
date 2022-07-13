@@ -37,29 +37,29 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 	public override bool CanRequeue => false;
 
 	public Queue Queue { get; }
+}
 
-	private sealed class QueueDeadLetterTreeViewItem : BaseTreeViewItem
+internal sealed class QueueDeadLetterTreeViewItem : BaseTreeViewItem
+{
+	public QueueDeadLetterTreeViewItem(Queue queue)
 	{
-		public QueueDeadLetterTreeViewItem(Queue queue)
-		{
-			DisplayName = AzureConstants.DeadLetterPathSegment;
-			IconUrl = "/Resources/Icons/dead-letter.png";
+		DisplayName = AzureConstants.DeadLetterPathSegment;
+		IconUrl = "/Resources/Icons/dead-letter.png";
 
-			Identifier = $"ID{new Guid(queue.InnerResource.Key):N}_dl";
-			IsEnabled = true;
-			SetHeaderValue();
+		Identifier = $"ID{new Guid(queue.InnerResource.Key):N}_dl";
+		IsEnabled = true;
+		SetHeaderValue();
 
-			Queue = queue;
-			DeadLetter = queue.DeadLetter;
-		}
-
-		public override bool CanReload => false;
-		public override bool CanClear => true;
-		public override bool CanUpload => false;
-		public override bool CanDownload => true;
-		public override bool CanRequeue => true;
-
-		public Queue Queue { get; }
-		public QueueDeadLetter DeadLetter { get; }
+		Queue = queue;
+		DeadLetter = queue.DeadLetter;
 	}
+
+	public override bool CanReload => false;
+	public override bool CanClear => true;
+	public override bool CanUpload => false;
+	public override bool CanDownload => true;
+	public override bool CanRequeue => true;
+
+	public Queue Queue { get; }
+	public QueueDeadLetter DeadLetter { get; }
 }

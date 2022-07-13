@@ -1,0 +1,39 @@
+<Window x:Class="MarvinBrouwer.ServiceBusManager.Dialogs.Dialog"
+     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+     xmlns:local="clr-namespace:MarvinBrouwer.ServiceBusManager.Dialogs"
+     xmlns:components="clr-namespace:MarvinBrouwer.ServiceBusManager.Components"
+     mc:Ignorable="d"
+     Title="Dialog title"
+     SizeToContent="WidthAndHeight"
+     ResizeMode="NoResize"
+     ShowInTaskbar="False"
+     Topmost="True"
+     WindowStartupLocation="CenterScreen">
+    <Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition MinHeight="100"></RowDefinition>
+			<RowDefinition Height="50"></RowDefinition>
+		</Grid.RowDefinitions>
+
+		<Grid
+			MinHeight="100"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Top">
+			<Frame 
+				Height="Auto"
+				Margin="0, 0, 0, 10"
+				MinHeight="100"
+				MinWidth="500"
+				x:Name="ContentPlaceHolder"
+				HorizontalAlignment="Left"
+				VerticalAlignment="Top"
+				NavigationUIVisibility="Hidden"/>
+		</Grid>
+		<components:DialogBar
+			x:Name="DialogBar"
+			Grid.Row="1" ></components:DialogBar>
+    </Grid>
+</Window>

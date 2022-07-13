@@ -7,14 +7,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using MarvinBrouwer.ServiceBusManager.Azure.Services;
 using MarvinBrouwer.ServiceBusManager.Components;
+using MarvinBrouwer.ServiceBusManager.Dialogs;
 using MarvinBrouwer.ServiceBusManager.Services;
+using MdXaml;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Application = System.Windows.Application;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace MarvinBrouwer.ServiceBusManager;
 
@@ -154,8 +160,22 @@ public partial class MainWindow : Window
 
 	private void ShowReadmeWindow(object sender, RoutedEventArgs e)
 	{
-		// TODO Readme window https://github.com/whistyun/MdXaml
-		throw new System.NotImplementedException();
+		if (ReadmeRenderer.Source is null)
+		{
+			// This is probably not efficient but we couldn't find a better way.
+			ReadmeRenderer.Source = new Uri("pack://application:,,,./Readme.md");
+
+			var resource = App.GetResourceStream(ReadmeRenderer.Source);
+			using var reader = new StreamReader(resource!.Stream);
+
+			ReadmeRenderer.Markdown = reader.ReadToEnd(); ;
+		}
+		HelpPanel.Visibility = Visibility.Visible;
+	}
+
+	private void HideReadmeWindow(object sender, RoutedEventArgs e)
+	{
+		HelpPanel.Visibility = Visibility.Collapsed;
 	}
 
 	private void ShowRequeueDialog(object sender, RoutedEventArgs e)
@@ -163,7 +183,9 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanRequeue) return;
 
-		// TODO
+		var (requeue, download) = Dialog.ConfirmRequeue(treeViewItem, 99 /*todo*/);
+		if (!requeue) return;
+
 		throw new System.NotImplementedException();
 	}
 
@@ -172,7 +194,9 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanDownload) return;
 
-		// TODO
+		var (requeue, download) = Dialog.ConfirmDownload(treeViewItem, 99 /*todo*/);
+		if (!requeue) return;
+
 		throw new System.NotImplementedException();
 	}
 
@@ -181,7 +205,9 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanUpload) return;
 
-		// TODO
+		var (requeue, download) = Dialog.ConfirmUpload(treeViewItem, "todo filename.ext" /* todo */, 99 /*todo*/);
+		if (!requeue) return;
+
 		throw new System.NotImplementedException();
 	}
 
@@ -189,6 +215,9 @@ public partial class MainWindow : Window
 	{
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanClear) return;
+
+		var (requeue, download) = Dialog.ConfirmClear(treeViewItem, 99 /*todo*/);
+		if (!requeue) return;
 
 		// TODO
 		throw new System.NotImplementedException();

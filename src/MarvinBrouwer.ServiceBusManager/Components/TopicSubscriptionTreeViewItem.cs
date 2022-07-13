@@ -16,7 +16,7 @@ namespace MarvinBrouwer.ServiceBusManager.Components;
 
 internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 {
-	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription)
+	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic)
 	{
 		DisplayName = topicSubscription.InnerResource.Name;
 		IconUrl = "/Resources/Icons/topic-subscription.png";
@@ -27,7 +27,7 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 
 		TopicSubscription = topicSubscription;
 
-		Items.Add(new TopicSubscriptionDeadLetterTreeViewItem(topicSubscription));
+		Items.Add(new TopicSubscriptionDeadLetterTreeViewItem(topicSubscription, topic));
 	}
 
 	public override bool CanReload => false;
@@ -37,29 +37,31 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 	public override bool CanRequeue => false;
 
 	public TopicSubscription TopicSubscription { get; }
+}
 
-	private sealed class TopicSubscriptionDeadLetterTreeViewItem : BaseTreeViewItem
+internal sealed class TopicSubscriptionDeadLetterTreeViewItem : BaseTreeViewItem
+{
+	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic)
 	{
-		public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription)
-		{
-			DisplayName = AzureConstants.DeadLetterPathSegment;
-			IconUrl = "/Resources/Icons/dead-letter.png";
+		DisplayName = AzureConstants.DeadLetterPathSegment;
+		IconUrl = "/Resources/Icons/dead-letter.png";
 
-			Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}_dl";
-			IsEnabled = true;
-			SetHeaderValue();
+		Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}_dl";
+		IsEnabled = true;
+		SetHeaderValue();
 
-			TopicSubscription = topicSubscription;
-			DeadLetter = topicSubscription.DeadLetter;
-		}
-
-		public override bool CanReload => false;
-		public override bool CanClear => true;
-		public override bool CanUpload => false;
-		public override bool CanDownload => true;
-		public override bool CanRequeue => true;
-
-		public TopicSubscription TopicSubscription { get; }
-		public TopicSubscriptionDeadLetter DeadLetter { get; }
+		Topic = topic;
+		TopicSubscription = topicSubscription;
+		DeadLetter = topicSubscription.DeadLetter;
 	}
+
+	public override bool CanReload => false;
+	public override bool CanClear => true;
+	public override bool CanUpload => false;
+	public override bool CanDownload => true;
+	public override bool CanRequeue => true;
+
+	public Topic Topic { get; }
+	public TopicSubscription TopicSubscription { get; }
+	public TopicSubscriptionDeadLetter DeadLetter { get; }
 }

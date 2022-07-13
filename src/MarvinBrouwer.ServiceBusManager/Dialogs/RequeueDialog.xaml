@@ -1,0 +1,42 @@
+<Page x:Class="MarvinBrouwer.ServiceBusManager.Dialogs.RequeueDialog"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MarvinBrouwer.ServiceBusManager.Dialogs"
+      mc:Ignorable="d"
+      d:DesignWidth="500"
+      Title="RequeueDialog">
+
+	<Page.Background>
+		<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
+	</Page.Background>
+
+	<StackPanel 
+		MinHeight="100">
+		<TextBlock Margin="10,20,10,00"
+				   x:Name="MainQuery"
+		           TextWrapping="Wrap">
+			Do you want to requeue {0} items?
+		</TextBlock>
+		<TextBlock Margin="10,5,10,00"
+		           TextWrapping="Wrap"
+				   Width="500"
+		           FontStyle="Italic">
+			This will requeue everything. 
+			Please download, and re-upload if you want to have control over what gets requeued
+		</TextBlock>
+		<StackPanel x:Name="SubscriptionWarning" Margin="10,25,10,00">
+			<TextBlock 
+				TextWrapping="Wrap"
+				FontWeight="ExtraBold">
+				WARNING!
+			</TextBlock>
+			<TextBlock 
+				TextWrapping="Wrap"
+				FontWeight="Bold">
+				Requeueing to a topic will do so for all subscriptions!
+			</TextBlock>
+		</StackPanel>
+	</StackPanel>
+</Page>
