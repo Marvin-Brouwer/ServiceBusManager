@@ -12,7 +12,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal abstract class ResourceTreeViewItem : BaseTreeViewItem
+public abstract class ResourceTreeViewItem : BaseTreeViewItem
 {
 	public IResource Resource { get; }
 

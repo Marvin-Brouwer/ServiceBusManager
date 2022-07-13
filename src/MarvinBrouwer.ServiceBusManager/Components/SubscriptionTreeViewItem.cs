@@ -10,7 +10,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class SubscriptionTreeViewItem : BaseTreeViewItem
+public sealed class SubscriptionTreeViewItem : BaseTreeViewItem
 {
 	public SubscriptionTreeViewItem(ISubscription subscription)
 	{

@@ -12,7 +12,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal abstract class BaseTreeViewItem : TreeViewItem
+public abstract class BaseTreeViewItem : TreeViewItem
 {
 	public string DisplayName { get; init; } = string.Empty;
 

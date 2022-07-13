@@ -10,10 +10,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using MarvinBrouwer.ServiceBusManager.Azure.Services;
 using MarvinBrouwer.ServiceBusManager.Components;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
 
-internal sealed class AzureLandscapeRenderingService
+public sealed class AzureLandscapeRenderingService
 {
 	private readonly TreeView _azureLandscape;
 	private readonly IAzureSubscriptionService _subscriptionService;

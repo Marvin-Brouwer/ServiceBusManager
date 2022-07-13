@@ -83,6 +83,7 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	  <PackageReference Include="MdXaml" Version="1.15.0" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
 	  <PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	  <ProjectReference Include="..\MarvinBrouwer.ServiceBusManager.Azure\MarvinBrouwer.ServiceBusManager.Azure.csproj" />
 	  <Resource Include="Resources\app-icon.png">

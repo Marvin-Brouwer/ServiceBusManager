@@ -1,8 +1,10 @@
 using System;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarvinBrouwer.ServiceBusManager;
 
@@ -11,15 +13,25 @@ namespace MarvinBrouwer.ServiceBusManager;
 /// </summary>
 public partial class App : Application
 {
-	private CancellationTokenSource _applicationCancellationTokenSource = new();
+	private readonly CancellationTokenSource _applicationCancellationTokenSource = new();
 	public CancellationToken CancellationToken => _applicationCancellationTokenSource.Token;
 
 	private void App_OnStartup(object sender, StartupEventArgs e)
 	{
 		Exit += (_, _) => { SignalCancel(); };
 		AppDomain.CurrentDomain.ProcessExit += (_, _) => { SignalCancel(); };
-
 		Current.DispatcherUnhandledException += CurrentDispatcherUnhandledException;
+
+		var serviceContainer = new ServiceCollection();
+		ServiceBusManager.Startup.ConfigureServices(serviceContainer);
+
+		serviceContainer.AddScoped<MainWindow>();
+		MainWindow = serviceContainer
+			.BuildServiceProvider()
+			.GetRequiredService<MainWindow>();
+
+		ShutdownMode = ShutdownMode.OnMainWindowClose;
+		MainWindow.Show();
 	}
 
 	private void CurrentDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

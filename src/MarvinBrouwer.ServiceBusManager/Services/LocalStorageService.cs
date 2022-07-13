@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
 
-internal sealed class LocalStorageService
+public sealed class LocalStorageService
 {
 	private const string TimeStampFormat = "yyyy-MM-dd HHmmss";
 	private const string DownloadFolderName = "Downloads";

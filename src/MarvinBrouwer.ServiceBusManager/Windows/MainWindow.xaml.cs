@@ -22,6 +22,7 @@ using MdXaml;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
+using TreeView = System.Windows.Controls.TreeView;
 
 namespace MarvinBrouwer.ServiceBusManager;
 
@@ -37,24 +38,32 @@ public partial class MainWindow : Window
 
 	private CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
 
-	public MainWindow()
+	public MainWindow(
+		IAzureServiceBusResourceQueryService resourceQueryService,
+		IAzureAuthenticationService azureAuthenticationService,
+		Func<TreeView, AzureLandscapeRenderingService> azureLandscapeRenderingService,
+		LocalStorageService localStorageService)
 	{
 		InitializeComponent();
+
+		_resourceQueryService = resourceQueryService;
+		_azureAuthenticationService = azureAuthenticationService;
+		_azureLandscapeRenderingService = azureLandscapeRenderingService(AzureLandscape);
+		_localStorageService = localStorageService;
+
+		InitializeWindow();
+	}
+
+	private void InitializeWindow()
+	{
 		ClearStatusPanel();
 		AppendStatusMessage(@"Loading data...");
 		SelectedItemChanged(null);
 
-		_azureAuthenticationService = new AzureAuthenticationService();
-		var subscriptionService = new AzureSubscriptionService(_azureAuthenticationService);
-		var serviceBusService = new AzureServiceBusService(_azureAuthenticationService);
-		_azureLandscapeRenderingService = new AzureLandscapeRenderingService(AzureLandscape, subscriptionService, serviceBusService);
-		_localStorageService = new LocalStorageService();
-		_resourceQueryService = new AzureServiceBusResourceQueryService();
-
 		Closing += (_, _) => ((App)Application.Current).SignalCancel();
 		Cursor = Cursors.Wait;
 		MenuItemReload.IsEnabled = false;
-		
+
 		Loaded += (_, _) => WindowLoaded();
 	}
 
