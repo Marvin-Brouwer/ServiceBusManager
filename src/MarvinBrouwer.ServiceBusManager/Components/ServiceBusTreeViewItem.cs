@@ -14,7 +14,7 @@ namespace MarvinBrouwer.ServiceBusManager.Components;
 
 internal sealed class ServiceBusTreeViewItem : BaseTreeViewItem
 {
-	public ServiceBusTreeViewItem(ServiceBus serviceBus)
+	public ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus.InnerResource)
 	{
 		DisplayName = serviceBus.InnerResource.Name;
 		Label = serviceBus.InnerResource.ResourceGroupName;

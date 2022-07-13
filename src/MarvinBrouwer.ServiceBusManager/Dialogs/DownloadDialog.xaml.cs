@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MarvinBrouwer.ServiceBusManager.Azure;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// <summary>
@@ -23,10 +24,19 @@ public partial class DownloadDialog : Page
 	{
 		InitializeComponent();
 	}
-	public DownloadDialog(int itemCount)
+	public DownloadDialog(int itemCount, bool maxItemsReached)
 	{
 		InitializeComponent();
 
 		MainQuery.Text = string.Format(MainQuery.Text, itemCount);
+		if (!maxItemsReached)
+		{
+			ItemMaxWarning.Visibility = Visibility.Collapsed;
+		}
+		else
+		{
+			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.MessageGetCount);
+			ItemMaxWarningDesciption.Text = string.Format(ItemMaxWarningDesciption.Text, AzureConstants.MessageGetCount);
+		}
 	}
 }

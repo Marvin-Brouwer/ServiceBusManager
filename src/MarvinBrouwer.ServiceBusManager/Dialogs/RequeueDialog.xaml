@@ -19,24 +19,51 @@
 		           TextWrapping="Wrap">
 			Do you want to requeue {0} items?
 		</TextBlock>
-		<TextBlock Margin="10,5,10,00"
+		<TextBlock Margin="10,5,10,10"
 		           TextWrapping="Wrap"
-				   Width="500"
+		           Width="480"
 		           FontStyle="Italic">
 			This will requeue everything. 
 			Please download, and re-upload if you want to have control over what gets requeued
 		</TextBlock>
-		<StackPanel x:Name="SubscriptionWarning" Margin="10,25,10,00">
-			<TextBlock 
-				TextWrapping="Wrap"
-				FontWeight="ExtraBold">
-				WARNING!
-			</TextBlock>
-			<TextBlock 
-				TextWrapping="Wrap"
-				FontWeight="Bold">
-				Requeueing to a topic will do so for all subscriptions!
-			</TextBlock>
+		<StackPanel Orientation="Horizontal" Margin="10,10,10,00"
+		            x:Name="ItemMaxWarning">
+			<Image Source="/Resources/Icons/warning.png"
+			       Width="24"
+			       Height="24"
+			       Margin="0, 0, 10,0"></Image>
+			<StackPanel>
+				<TextBlock 
+					TextWrapping="Wrap"
+					FontWeight="ExtraBold">
+					NOTE!
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap" FontWeight="Bold" x:Name="ItemMaxWarningMessage">
+					The amount of items in this resource is more than {0} items?
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap">
+					If you want to requeue the rest of the items, please run the command again.
+				</TextBlock>
+			</StackPanel>
+		</StackPanel>
+		<StackPanel x:Name="SubscriptionWarning" Margin="10,10,10,00"
+		            Orientation="Horizontal">
+			<Image Source="/Resources/Icons/warning.png"
+			       Width="24"
+			       Height="24"
+			       Margin="0, 0, 10,0"></Image>
+			<StackPanel>
+				<TextBlock 
+					TextWrapping="Wrap"
+					FontWeight="ExtraBold">
+					WARNING!
+				</TextBlock>
+				<TextBlock 
+					TextWrapping="Wrap"
+					FontWeight="Bold">
+					Requeuing to a topic will do so for all subscriptions!
+				</TextBlock>
+			</StackPanel>
 		</StackPanel>
 	</StackPanel>
 </Page>

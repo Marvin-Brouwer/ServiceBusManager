@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
@@ -29,8 +30,12 @@ internal abstract class BaseTreeViewItem : TreeViewItem
 		set => Name = value;
 	}
 
-	protected BaseTreeViewItem()
+	public IResource? Resource { get; }
+
+	protected BaseTreeViewItem(IResource? resource = null)
 	{
+		Resource = resource;
+
 		IsEnabled = false;
 		FontWeight = FontWeights.Normal;
 

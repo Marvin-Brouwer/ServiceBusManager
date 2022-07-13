@@ -15,7 +15,7 @@ namespace MarvinBrouwer.ServiceBusManager.Components;
 
 internal sealed class QueueTreeViewItem : BaseTreeViewItem
 {
-	public QueueTreeViewItem(Queue queue)
+	public QueueTreeViewItem(Queue queue) : base(queue.InnerResource)
 	{
 		DisplayName = queue.InnerResource.Name;
 		Label = nameof(queue);
@@ -41,7 +41,7 @@ internal sealed class QueueTreeViewItem : BaseTreeViewItem
 
 internal sealed class QueueDeadLetterTreeViewItem : BaseTreeViewItem
 {
-	public QueueDeadLetterTreeViewItem(Queue queue)
+	public QueueDeadLetterTreeViewItem(Queue queue) : base(queue.InnerResource)
 	{
 		DisplayName = AzureConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";

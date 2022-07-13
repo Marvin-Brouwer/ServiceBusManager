@@ -16,7 +16,7 @@ namespace MarvinBrouwer.ServiceBusManager.Components;
 
 internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 {
-	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic)
+	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription.InnerResource)
 	{
 		DisplayName = topicSubscription.InnerResource.Name;
 		IconUrl = "/Resources/Icons/topic-subscription.png";
@@ -41,7 +41,7 @@ internal sealed class TopicSubscriptionTreeViewItem : BaseTreeViewItem
 
 internal sealed class TopicSubscriptionDeadLetterTreeViewItem : BaseTreeViewItem
 {
-	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic)
+	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription.InnerResource)
 	{
 		DisplayName = AzureConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";

@@ -14,10 +14,30 @@
 
 	<StackPanel 
 		MinHeight="100">
-		<TextBlock Margin="10,20,10,00"
+		<TextBlock Margin="10,20,10,10"
 				   x:Name="MainQuery"
 		           TextWrapping="Wrap">
 			Do you want to download {0} items?
 		</TextBlock>
+		<StackPanel Orientation="Horizontal" Margin="10,10,10,00"
+		            x:Name="ItemMaxWarning">
+			<Image Source="/Resources/Icons/warning.png"
+			       Width="24"
+			       Height="24"
+			       Margin="0, 0, 10,0"></Image>
+			<StackPanel>
+				<TextBlock 
+					TextWrapping="Wrap"
+					FontWeight="ExtraBold">
+					NOTE!
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap" FontWeight="Bold" x:Name="ItemMaxWarningMessage">
+					The amount of items in this resource is more than {0} items?
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap" x:Name="ItemMaxWarningDesciption">
+					If you want to download the rest of the items, please clear the top {0} items and run the command again.
+				</TextBlock>
+			</StackPanel>
+		</StackPanel>
 	</StackPanel>
 </Page>

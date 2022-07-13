@@ -1,9 +1,11 @@
-//using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
-//namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
+namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
-//internal interface IAzureServiceBusResourceQueryService
-//{
-//	Task<long> GetMessageCount(AzureResource selectedResource, CancellationToken cancellationToken);
-//	Task<MessageHandler> DownloadFullResource(AzureResource selectedResource, CancellationToken cancellationToken);
-//}
+public interface IAzureServiceBusResourceQueryService
+{
+	Task<long> GetMessageCount(IResource selectedResource, CancellationToken cancellationToken);
+	// todo change type
+	Task<object> DownloadFullResource(IResource selectedResource, CancellationToken cancellationToken);
+}

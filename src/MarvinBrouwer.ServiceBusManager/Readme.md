@@ -5,6 +5,8 @@ All icons are from [flatIcons.com](https://www.flaticon.com/free-icons).
 Attributions are made because we didn't pay for these and flaticon requires us to do so.  
 Also, if we ever publish this to the open-source community we don't have to look back for these.  
 
+
+WARNING ICON https://www.flaticon.com/free-icon/warning_595067
 <a href="https://www.flaticon.com/free-icon/unemployment_4840311">
 	<img src="./Resources/Icons/app-icon.png" alt="" width="18" height="18" class="icon"/>The application icon
 </a><br/>

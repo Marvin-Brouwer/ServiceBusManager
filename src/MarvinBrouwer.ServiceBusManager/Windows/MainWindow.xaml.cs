@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using MarvinBrouwer.ServiceBusManager.Azure;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using MarvinBrouwer.ServiceBusManager.Azure.Services;
 using MarvinBrouwer.ServiceBusManager.Components;
@@ -29,9 +30,8 @@ namespace MarvinBrouwer.ServiceBusManager;
 /// </summary>
 public partial class MainWindow : Window
 {
-	private readonly AzureSubscriptionService _subscriptionService;
-	private readonly AzureAuthenticationService _azureAuthenticationService;
-	private readonly AzureServiceBusService _serviceBusService;
+	private readonly IAzureServiceBusResourceQueryService _resourceQueryService;
+	private readonly IAzureAuthenticationService _azureAuthenticationService;
 	private readonly AzureLandscapeRenderingService _azureLandscapeRenderingService;
 	private readonly LocalStorageService _localStorageService;
 
@@ -45,9 +45,9 @@ public partial class MainWindow : Window
 		SelectedItemChanged(null);
 
 		_azureAuthenticationService = new AzureAuthenticationService();
-		_subscriptionService = new AzureSubscriptionService(_azureAuthenticationService);
-		_serviceBusService = new AzureServiceBusService(_azureAuthenticationService);
-		_azureLandscapeRenderingService = new AzureLandscapeRenderingService(AzureLandscape, _subscriptionService, _serviceBusService);
+		var subscriptionService = new AzureSubscriptionService(_azureAuthenticationService);
+		var serviceBusService = new AzureServiceBusService(_azureAuthenticationService);
+		_azureLandscapeRenderingService = new AzureLandscapeRenderingService(AzureLandscape, subscriptionService, serviceBusService);
 		_localStorageService = new LocalStorageService();
 
 		Closing += (_, _) => ((App)Application.Current).SignalCancel();
@@ -178,14 +178,31 @@ public partial class MainWindow : Window
 		HelpPanel.Visibility = Visibility.Collapsed;
 	}
 
-	private void ShowRequeueDialog(object sender, RoutedEventArgs e)
+	private static (int fullCount, bool maxItemsReached) ValidateItemCount(long fullCount)
+	{
+		if (fullCount <= AzureConstants.MessageGetCount)
+			return ((int)fullCount, false);
+
+		return (AzureConstants.MessageGetCount, true);
+	}
+
+	private async void ShowRequeueDialog(object sender, RoutedEventArgs e)
 	{
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
-		if (!treeViewItem.CanRequeue) return;
+		if (!treeViewItem.CanRequeue || treeViewItem.Resource is null) return;
 
-		var (requeue, download) = Dialog.ConfirmRequeue(treeViewItem, 99 /*todo*/);
-		if (!requeue) return;
+		ClearStatusPanel();
+		AppendStatusMessage("Getting item count for requeue");
+		// var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
+		var fullCount = 26L;
+		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
+		var (requeue, download) = Dialog.ConfirmRequeue(treeViewItem, itemCount, maxItemsReached);
+		if (!requeue)
+		{
+			AppendStatusMessage("Canceled");
+			return;
+		}
 		throw new System.NotImplementedException();
 	}
 
@@ -194,7 +211,7 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanDownload) return;
 
-		var (requeue, download) = Dialog.ConfirmDownload(treeViewItem, 99 /*todo*/);
+		var (requeue, download) = Dialog.ConfirmDownload(treeViewItem, 99 /*todo*/, false);
 		if (!requeue) return;
 
 		throw new System.NotImplementedException();
@@ -216,7 +233,7 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanClear) return;
 
-		var (requeue, download) = Dialog.ConfirmClear(treeViewItem, 99 /*todo*/);
+		var (requeue, download) = Dialog.ConfirmClear(treeViewItem, 99 /*todo*/, false);
 		if (!requeue) return;
 
 		// TODO

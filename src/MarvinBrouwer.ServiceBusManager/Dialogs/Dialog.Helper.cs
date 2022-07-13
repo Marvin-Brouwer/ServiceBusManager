@@ -11,11 +11,11 @@ namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 
 public partial class Dialog
 {
-	internal static (bool requeue, bool download) ConfirmRequeue(BaseTreeViewItem item, int itemCount)
+	internal static (bool requeue, bool download) ConfirmRequeue(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
 		var dialog = new Dialog($"Requeue items from `{resourceName}`?", "Download before requeue?",
-			new RequeueDialog(item is TopicSubscriptionDeadLetterTreeViewItem, itemCount));
+			new RequeueDialog(item is TopicSubscriptionDeadLetterTreeViewItem, itemCount, maxItemsReached));
 
 		var requeue = dialog.ShowDialog() ?? false;
 		return (requeue, dialog.DialogBar.StoreBeforeAction);
@@ -31,21 +31,21 @@ public partial class Dialog
 		return (requeue, dialog.DialogBar.StoreBeforeAction);
 	}
 
-	internal static (bool requeue, bool download) ConfirmClear(BaseTreeViewItem item, int itemCount)
+	internal static (bool requeue, bool download) ConfirmClear(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
 		var dialog = new Dialog($"Clear items from `{resourceName}`?", "Download before requeue?",
-			new ClearDialog(itemCount));
+			new ClearDialog(itemCount, maxItemsReached));
 
 		var requeue = dialog.ShowDialog() ?? false;
 		return (requeue, dialog.DialogBar.StoreBeforeAction);
 	}
 
-	internal static (bool requeue, bool download) ConfirmDownload(BaseTreeViewItem item, int itemCount)
+	internal static (bool requeue, bool download) ConfirmDownload(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
 		var dialog = new Dialog($"Download items from `{resourceName}`?", "Download before requeue?",
-			new DownloadDialog(itemCount));
+			new DownloadDialog(itemCount, maxItemsReached));
 
 		var requeue = dialog.ShowDialog() ?? false;
 		return (requeue, dialog.DialogBar.StoreBeforeAction);

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MarvinBrouwer.ServiceBusManager.Azure;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// <summary>
@@ -23,10 +24,18 @@ public partial class ClearDialog : Page
 	{
 		InitializeComponent();
 	}
-	public ClearDialog(int itemCount)
+	public ClearDialog(int itemCount, bool maxItemsReached)
 	{
 		InitializeComponent();
 
 		MainQuery.Text = string.Format(MainQuery.Text, itemCount);
+		if (!maxItemsReached)
+		{
+			ItemMaxWarning.Visibility = Visibility.Collapsed;
+		}
+		else
+		{
+			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.MessageGetCount);
+		}
 	}
 }

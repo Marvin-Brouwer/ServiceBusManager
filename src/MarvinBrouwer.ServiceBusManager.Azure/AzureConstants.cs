@@ -13,7 +13,7 @@ public static class AzureConstants
 	/// This is not allowed to be more than 100, so if we need more we'll need to batch
 	/// This is only true for topics and queues, actual messages are batched by the api
 	/// </summary>
-	public const int GetMessageCount = 25;
+	public const int MessageGetCount = 25;
 
 	/// <summary>
 	/// Naming segment for dead letter items
