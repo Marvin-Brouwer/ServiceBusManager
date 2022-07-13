@@ -25,10 +25,16 @@ public partial class DialogBar : UserControl
 
 	[Category("Behavior")] public event EventHandler OnCancel;
 
-	public string CheckBoxLabel
+	public string? CheckBoxLabel
 	{
-		get => StoreBeforeActionCheckbox.Content?.ToString() ?? "Save?";
-		set => StoreBeforeActionCheckbox.Content = value;
+		get => StoreBeforeActionCheckbox.Content?.ToString();
+		set
+		{
+			StoreBeforeActionCheckbox.Content = value;
+			StoreBeforeActionCheckbox.Visibility = string.IsNullOrWhiteSpace(value)
+				? Visibility.Collapsed
+				: Visibility.Visible;
+		}
 	}
 
 	public bool StoreBeforeAction => StoreBeforeActionCheckbox.IsChecked ?? false;

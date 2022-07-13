@@ -11,7 +11,7 @@ namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 
 public partial class Dialog
 {
-	internal static (bool requeue, bool download) ConfirmRequeue(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
+	internal static (bool requeue, bool storeDownload) ConfirmRequeue(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
 		var dialog = new Dialog($"Requeue items from `{resourceName}`?", "Download before requeue?",
@@ -21,34 +21,32 @@ public partial class Dialog
 		return (requeue, dialog.DialogBar.StoreBeforeAction);
 	}
 
-	internal static (bool requeue, bool download) ConfirmUpload(BaseTreeViewItem item, string fileName, int itemCount)
+	internal static bool ConfirmUpload(BaseTreeViewItem item, string fileName, int itemCount)
 	{
 		var resourceName = FormatTitle(item);
-		var dialog = new Dialog($"Upload `{fileName}` to `{resourceName}`?", "Download before requeue?",
+		var dialog = new Dialog($"Upload `{fileName}` to `{resourceName}`?",
 			new UploadDialog(item is TopicTreeViewItem, itemCount));
 
-		var requeue = dialog.ShowDialog() ?? false;
-		return (requeue, dialog.DialogBar.StoreBeforeAction);
+		return dialog.ShowDialog() ?? false;
 	}
 
-	internal static (bool requeue, bool download) ConfirmClear(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
+	internal static (bool clear, bool storeDownload) ConfirmClear(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
-		var dialog = new Dialog($"Clear items from `{resourceName}`?", "Download before requeue?",
+		var dialog = new Dialog($"Clear items from `{resourceName}`?", "Download before clear?",
 			new ClearDialog(itemCount, maxItemsReached));
 
-		var requeue = dialog.ShowDialog() ?? false;
-		return (requeue, dialog.DialogBar.StoreBeforeAction);
+		var clear = dialog.ShowDialog() ?? false;
+		return (clear, dialog.DialogBar.StoreBeforeAction);
 	}
 
-	internal static (bool requeue, bool download) ConfirmDownload(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
+	internal static bool ConfirmDownload(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
-		var dialog = new Dialog($"Download items from `{resourceName}`?", "Download before requeue?",
+		var dialog = new Dialog($"Download items from `{resourceName}`?",
 			new DownloadDialog(itemCount, maxItemsReached));
 
-		var requeue = dialog.ShowDialog() ?? false;
-		return (requeue, dialog.DialogBar.StoreBeforeAction);
+		return dialog.ShowDialog() ?? false;
 	}
 
 	private static string FormatTitle(BaseTreeViewItem item)

@@ -40,6 +40,21 @@ public partial class Dialog : Window
 		ContentPlaceHolder.Content = dialogPage;
 	}
 
+	private Dialog(
+		string title,
+		Page dialogPage)
+	{
+		InitializeComponent();
+		Icon = null;
+		Title = title;
+
+		DialogBar.CheckBoxLabel = null;
+		DialogBar.OnOk += OnOkClick;
+		DialogBar.OnCancel += OnCancelClick;
+
+		ContentPlaceHolder.Content = dialogPage;
+	}
+
 	private void OnOkClick(object? sender, EventArgs e)
 	{
 		DialogResult = true;

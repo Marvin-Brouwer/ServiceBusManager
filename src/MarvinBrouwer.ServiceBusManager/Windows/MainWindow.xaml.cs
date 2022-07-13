@@ -197,11 +197,18 @@ public partial class MainWindow : Window
 		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
-		var (requeue, download) = Dialog.ConfirmRequeue(treeViewItem, itemCount, maxItemsReached);
+		var (requeue, storeDownload) = Dialog.ConfirmRequeue(treeViewItem, itemCount, maxItemsReached);
 		if (!requeue)
 		{
 			AppendStatusMessage("Canceled");
 			return;
+		}
+
+		// TODO
+
+		if (storeDownload)
+		{
+			// TODO
 		}
 
 		// TODO
@@ -218,8 +225,8 @@ public partial class MainWindow : Window
 		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
-		var (requeue, download) = Dialog.ConfirmDownload(treeViewItem, itemCount, maxItemsReached);
-		if (!requeue)
+		var download = Dialog.ConfirmDownload(treeViewItem, itemCount, maxItemsReached);
+		if (!download)
 		{
 			AppendStatusMessage("Canceled");
 			return;
@@ -239,8 +246,8 @@ public partial class MainWindow : Window
 
 		// TODO select, unpack, count
 
-		var (requeue, download) = Dialog.ConfirmUpload(treeViewItem, "todo filename.ext" /* todo */, 99 /*todo*/);
-		if (!requeue)
+		var upload = Dialog.ConfirmUpload(treeViewItem, "todo filename.ext" /* todo */, 99 /*todo*/);
+		if (!upload)
 		{
 			AppendStatusMessage("Canceled");
 			return;
@@ -260,12 +267,20 @@ public partial class MainWindow : Window
 		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
-		var (requeue, download) = Dialog.ConfirmClear(treeViewItem, itemCount, maxItemsReached);
-		if (!requeue)
+		var (clear, storeDownload) = Dialog.ConfirmClear(treeViewItem, itemCount, maxItemsReached);
+		if (!clear)
 		{
 			AppendStatusMessage("Canceled");
 			return;
 		}
+
+		// TODO
+
+		if (storeDownload)
+		{
+			// TODO
+		}
+
 
 		// TODO
 		throw new System.NotImplementedException();
