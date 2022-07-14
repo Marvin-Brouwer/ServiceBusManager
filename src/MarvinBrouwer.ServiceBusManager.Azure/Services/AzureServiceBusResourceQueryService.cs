@@ -1,6 +1,7 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using MarvinBrouwer.ServiceBusManager.Azure.Extensions;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure;
 using Microsoft.Azure.Management.Fluent;
@@ -17,8 +18,8 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
 public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
 {
-	public async Task<long> GetMessageCount<TResource>(IAzureResource<TResource> selectedResource, CancellationToken cancellationToken)
-		where TResource : IResource
+	public async Task<long> GetMessageCount(
+		IAzureResource<IResource> selectedResource, CancellationToken cancellationToken)
 	{
 		if (selectedResource is Queue queue)
 		{
@@ -43,40 +44,13 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
-
-
-	/// <summary>
-	/// Use the <see cref="IServiceBusNamespace"/>s Authorization rules to get
-	/// a connection string containing the correct access rights
-	/// </summary>
-	private static async Task<string> GetAccessConnectionString(
-		IServiceBusNamespace serviceBusNamespace, AccessRights accessRights, CancellationToken cancellationToken)
+	
+	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(
+		IAzureResource<IResource> selectedResource, CancellationToken cancellationToken)
 	{
-		var rootManageSharedAccessKey = await serviceBusNamespace.AuthorizationRules
-			.GetByNameAsync("RootManageSharedAccessKey", cancellationToken);
+		var connectionString = await selectedResource.ServiceBus
+			.GetAccessConnectionString(AccessRights.Listen, cancellationToken);
 
-		// Try the default access key first
-		if (rootManageSharedAccessKey != null && rootManageSharedAccessKey.Rights.Contains(accessRights))
-			return (await rootManageSharedAccessKey.GetKeysAsync(cancellationToken)).PrimaryConnectionString;
-
-		// Find one with enough rights
-		var accessKeyRecord = (await serviceBusNamespace.AuthorizationRules
-				.ListAsync(true, cancellationToken))
-			.FirstOrDefault(key => key.Rights.Contains(accessRights));
-
-		// If you ever run into this.
-		// Alternatively you can use the _authenticationService.AzureCredentials to pass to the ServiceBusClient
-		// We're not sure if this works, it sure didn't with the RootManageSharedAccessKey in place.
-		if (accessKeyRecord is null) throw new NotSupportedException(
-			"Currently we don't support service buses without access keys");
-
-		return (await accessKeyRecord.GetKeysAsync(cancellationToken)).PrimaryConnectionString;
-	}
-
-	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages<TResource>(IAzureResource<TResource> selectedResource, CancellationToken cancellationToken)
-		where TResource : IResource
-	{
-		var connectionString = await GetAccessConnectionString(selectedResource.ServiceBus, AccessRights.Listen, cancellationToken);
 		var client = new ServiceBusClient(connectionString, new ServiceBusClientOptions
 		{
 			EnableCrossEntityTransactions = true,

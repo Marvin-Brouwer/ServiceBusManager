@@ -71,9 +71,11 @@ public partial class MainWindow : Window
 	#region WindowUtilities
 	private void AppendStatusMessage(string message)
 	{
-		if (string.IsNullOrWhiteSpace(message))
-			StatusBox.Children.Add(new HeaderedContentControl { Header = Environment.NewLine });
-		StatusBox.Children.Add(new HeaderedContentControl { Header = message });
+		var paddingTop = StatusBox.Children.Count == 0 ? 10 : 0;
+		StatusBox.Children.Add(new TextBlock {
+			Text = string.IsNullOrWhiteSpace(message) ? Environment.NewLine : message,
+			Padding = new Thickness(10, paddingTop, 10, 2)
+		});
 	}
 
 	private void ClearStatusPanel()
