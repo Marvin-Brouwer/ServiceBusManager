@@ -20,6 +20,7 @@ using MarvinBrouwer.ServiceBusManager.Dialogs;
 using MarvinBrouwer.ServiceBusManager.Services;
 using MdXaml;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
 using TreeView = System.Windows.Controls.TreeView;
@@ -190,10 +191,10 @@ public partial class MainWindow : Window
 
 	private static (int fullCount, bool maxItemsReached) ValidateItemCount(long fullCount)
 	{
-		if (fullCount <= AzureConstants.MessageGetCount)
+		if (fullCount <= AzureConstants.ServiceBusResourceMaxItemCount)
 			return ((int)fullCount, false);
 
-		return (AzureConstants.MessageGetCount, true);
+		return (AzureConstants.ServiceBusResourceMaxItemCount, true);
 	}
 
 	private async void ShowRequeueDialog(object sender, RoutedEventArgs e)
@@ -203,7 +204,7 @@ public partial class MainWindow : Window
 
 		ClearStatusPanel();
 		AppendStatusMessage("Getting item count to requeue");
-		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
+		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var (requeue, storeDownload) = Dialog.ConfirmRequeue(treeViewItem, itemCount, maxItemsReached);
@@ -212,15 +213,17 @@ public partial class MainWindow : Window
 			AppendStatusMessage("Canceled");
 			return;
 		}
-
-		// TODO
+		
+		AppendStatusMessage("Downloading message data (peek)");
+		var serviceBusMessages = await _resourceQueryService
+			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
 
 		if (storeDownload)
 		{
-			// TODO
+			// TODO STORE
 		}
 
-		// TODO
+		// TODO PUSH
 		throw new System.NotImplementedException();
 	}
 
@@ -231,7 +234,7 @@ public partial class MainWindow : Window
 
 		ClearStatusPanel();
 		AppendStatusMessage("Getting item count to download");
-		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
+		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var download = Dialog.ConfirmDownload(treeViewItem, itemCount, maxItemsReached);
@@ -241,7 +244,11 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		// TODO
+		AppendStatusMessage("Downloading message data (peek)");
+		var serviceBusMessages = await _resourceQueryService
+			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
+		
+		// TODO STORE
 		throw new System.NotImplementedException();
 	}
 
@@ -262,7 +269,7 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		// TODO
+		// TODO PUSH
 		throw new System.NotImplementedException();
 	}
 
@@ -273,7 +280,7 @@ public partial class MainWindow : Window
 
 		ClearStatusPanel();
 		AppendStatusMessage("Getting item count to clear");
-		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, treeViewItem.IsDeadLetter, CancellationToken);
+		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var (clear, storeDownload) = Dialog.ConfirmClear(treeViewItem, itemCount, maxItemsReached);
@@ -283,15 +290,17 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		// TODO
+		AppendStatusMessage("Downloading message data (peek)");
+		var serviceBusMessages = await _resourceQueryService
+			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
 
 		if (storeDownload)
 		{
-			// TODO
+			// TODO STORE
 		}
 
 
-		// TODO
+		// TODO CLEAR
 		throw new System.NotImplementedException();
 	}
 

@@ -35,7 +35,7 @@ public partial class ClearDialog : Page
 		}
 		else
 		{
-			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.MessageGetCount);
+			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.ServiceBusResourceMaxItemCount);
 		}
 	}
 }

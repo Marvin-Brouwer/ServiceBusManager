@@ -51,7 +51,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 
 	public IAsyncEnumerable<TopicSubscription> ListTopicSubscriptions(Topic topic, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		return GetSubscriptions(topic.InnerResource, cancellationToken);
+		return GetSubscriptions(topic.ServiceBus, topic.InnerResource, cancellationToken);
 	}
 
 	private static async IAsyncEnumerable<Queue> GetQueues(IServiceBusNamespace serviceBusNamespace, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -61,7 +61,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 
 		foreach (IQueue queue in queues)
 		{
-			yield return new Queue(queue);
+			yield return new Queue(serviceBusNamespace, queue);
 		}
 	}
 
@@ -72,21 +72,21 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 
 		foreach (var topic in topics)
 		{
-			yield return new Topic(topic)
+			yield return new Topic(serviceBusNamespace, topic)
 			{
-				TopicSubscriptions = GetSubscriptions(topic, cancellationToken)
+				TopicSubscriptions = GetSubscriptions(serviceBusNamespace, topic, cancellationToken)
 			};
 		}
 	}
 
-	private static async IAsyncEnumerable<TopicSubscription> GetSubscriptions(ITopic topic, [EnumeratorCancellation] CancellationToken cancellationToken)
+	private static async IAsyncEnumerable<TopicSubscription> GetSubscriptions(IServiceBusNamespace serviceBusNamespace, ITopic topic, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var subscriptions = await topic.Subscriptions
 			.ListAsync(true, cancellationToken);
 
 		foreach (var topicSubscription in subscriptions)
 		{
-			yield return new TopicSubscription(topicSubscription);
+			yield return new TopicSubscription(serviceBusNamespace, topic, topicSubscription);
 		}
 	}
 }

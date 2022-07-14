@@ -1,108 +1,142 @@
+using Azure.Core;
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using Microsoft.Azure;
+using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
+using Microsoft.Azure.Management.ServiceBus.Fluent.Models;
+using Microsoft.Azure.ServiceBus.Management;
+using Microsoft.Azure.ServiceBus.Primitives;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Azure;
+using AccessRights = Microsoft.Azure.Management.ServiceBus.Fluent.Models.AccessRights;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
 public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
 {
-	public async Task<long> GetMessageCount(IResource selectedResource, bool countDeadLetter, CancellationToken cancellationToken)
+	public async Task<long> GetMessageCount<TResource>(IAzureResource<TResource> selectedResource, CancellationToken cancellationToken)
+		where TResource : IResource
 	{
-		if (selectedResource is IQueue queue)
+		if (selectedResource is Queue queue)
 		{
-			queue = await queue.RefreshAsync(cancellationToken);
-			return countDeadLetter
-				? queue.DeadLetterMessageCount
-				: queue.ActiveMessageCount;
+			return (await queue.InnerResource.RefreshAsync(cancellationToken))
+				.ActiveMessageCount;
 		}
-		if (selectedResource is ISubscription subscription)
+		if (selectedResource is QueueDeadLetter deadLetterQueue)
 		{
-			subscription = await subscription.RefreshAsync(cancellationToken);
-			return countDeadLetter
-				? subscription.DeadLetterMessageCount
-				: subscription.ActiveMessageCount;
+			return (await deadLetterQueue.InnerResource.RefreshAsync(cancellationToken))
+				.DeadLetterMessageCount;
+		}
+		if (selectedResource is TopicSubscription subscription)
+		{
+			return (await subscription.InnerResource.RefreshAsync(cancellationToken))
+				.ActiveMessageCount;
+		}
+		if (selectedResource is TopicSubscriptionDeadLetter deadLetterSubscription)
+		{
+			return (await deadLetterSubscription.InnerResource.RefreshAsync(cancellationToken))
+				.DeadLetterMessageCount;
 		}
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
 
 
-	//public async Task<MessageHandler> DownloadFullResource(AzureResource selectedResource, CancellationToken cancellationToken)
-	//{
-	//	var client = await _clientFactory.GetServiceBusClient(selectedResource.ServiceBus.Secret, cancellationToken);
-	//	return await GetResourceResults(selectedResource, client, cancellationToken);
-	//}
-
 	/// <summary>
-	/// Use ReceiveMessagesAsync instead of PeekMessagesAsync, because the ReceiveMode does not apply to peek
-	/// When using peek we have no control over locking, releasing and completing
+	/// Use the <see cref="IServiceBusNamespace"/>s Authorization rules to get
+	/// a connection string containing the correct access rights
 	/// </summary>
-	//private async Task<MessageHandler> GetResourceResults(AzureResource selectedResource, ServiceBusClient client, CancellationToken cancellationToken)
-	//{
-	//	if (selectedResource is Queue || selectedResource is QueueDeadLetter)
-	//		return await GetQueueResults(selectedResource, client, selectedResource.Path, cancellationToken);
+	private static async Task<string> GetAccessConnectionString(
+		IServiceBusNamespace serviceBusNamespace, AccessRights accessRights, CancellationToken cancellationToken)
+	{
+		var rootManageSharedAccessKey = await serviceBusNamespace.AuthorizationRules
+			.GetByNameAsync("RootManageSharedAccessKey", cancellationToken);
 
-	//	if (selectedResource is TopicSubscription topicSubscription)
-	//		return await GetTopicResourceResults(selectedResource, client,
-	//			topicSubscription.Topic.Path, topicSubscription.Path, cancellationToken);
+		// Try the default access key first
+		if (rootManageSharedAccessKey != null && rootManageSharedAccessKey.Rights.Contains(accessRights))
+			return (await rootManageSharedAccessKey.GetKeysAsync(cancellationToken)).PrimaryConnectionString;
 
-	//	if (selectedResource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
-	//		return await GetTopicResourceResults(selectedResource, client,
-	//			topicSubscriptionDeadLetter.Topic.Path, topicSubscriptionDeadLetter.Path, cancellationToken);
+		// Find one with enough rights
+		var accessKeyRecord = (await serviceBusNamespace.AuthorizationRules
+				.ListAsync(true, cancellationToken))
+			.FirstOrDefault(key => key.Rights.Contains(accessRights));
 
-	//	throw new NotSupportedException(selectedResource.GetType().FullName);
-	//}
+		// If you ever run into this.
+		// Alternatively you can use the _authenticationService.AzureCredentials to pass to the ServiceBusClient
+		// We're not sure if this works, it sure didn't with the RootManageSharedAccessKey in place.
+		if (accessKeyRecord is null) throw new NotSupportedException(
+			"Currently we don't support service buses without access keys");
 
-	//private async Task<MessageHandler> GetTopicResourceResults(
-	//	AzureResource selectedResource,
-	//	ServiceBusClient client,
-	//	string topicPath,
-	//	string topicSubscriptionPath,
-	//	CancellationToken cancellationToken)
-	//{
-	//	var subscriptionClient = client.CreateReceiver(
-	//		topicPath,
-	//		topicSubscriptionPath,
-	//		new ServiceBusReceiverOptions
-	//		{
-	//			ReceiveMode = ServiceBusReceiveMode.PeekLock
-	//		});
+		return (await accessKeyRecord.GetKeysAsync(cancellationToken)).PrimaryConnectionString;
+	}
 
-	//	return new MessageHandler(
-	//		client,
-	//		selectedResource,
-	//		subscriptionClient,
-	//		await subscriptionClient.ReceiveMessagesAsync(AzureConstants.GetMessageCount, null, cancellationToken)
-	//	);
-	//}
+	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages<TResource>(IAzureResource<TResource> selectedResource, CancellationToken cancellationToken)
+		where TResource : IResource
+	{
+		var connectionString = await GetAccessConnectionString(selectedResource.ServiceBus, AccessRights.Listen, cancellationToken);
+		var client = new ServiceBusClient(connectionString, new ServiceBusClientOptions
+		{
+			EnableCrossEntityTransactions = true,
+			TransportType = ServiceBusTransportType.AmqpTcp
+		});
 
-	//private async Task<MessageHandler> GetQueueResults(
-	//	AzureResource selectedResource,
-	//	ServiceBusClient client,
-	//	string path,
-	//	CancellationToken cancellationToken)
-	//{
-	//	var queueClient = client.CreateReceiver(path, new ServiceBusReceiverOptions
-	//	{
-	//		ReceiveMode = ServiceBusReceiveMode.PeekLock
-	//	});
+		if (selectedResource is IAzureResource<IQueue>)
+		{
+			var queueReceiver = CreateQueueReceiver(client, selectedResource.Path, cancellationToken);
+			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
+		}
 
-	//	return new MessageHandler(
-	//		client,
-	//		selectedResource,
-	//		queueClient,
-	//		await ReceiveMessagesAsync(queueClient, cancellationToken)
-	//	);
-	//}
+		if (selectedResource is TopicSubscription subscription)
+		{
+			var queueReceiver = CreateTopicReceiver(client,
+				subscription.TopicPath,
+				subscription.Path, cancellationToken);
+			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
+		}
+		if (selectedResource is TopicSubscriptionDeadLetter deadLetterSubscription)
+		{
+			var queueReceiver = CreateTopicReceiver(client,
+				deadLetterSubscription.TopicPath,
+				deadLetterSubscription.Path, cancellationToken);
+			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
+		}
 
-	//private async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReceiveMessagesAsync(ServiceBusReceiver queueClient, CancellationToken cancellationToken)
-	//{
-	//	// Add synthetic delay to prevent locks persisting
-	//	var lockWaitDelay = TimeSpan.FromMilliseconds(500);
+		throw new NotSupportedException(selectedResource.GetType().FullName);
+	}
 
-	//	await Task.Delay(lockWaitDelay, cancellationToken);
+	private ServiceBusReceiver CreateQueueReceiver(
+		ServiceBusClient client,
+		string path,
+		CancellationToken cancellationToken)
+	{
+		return client.CreateReceiver(path, new ServiceBusReceiverOptions
+		{
+			ReceiveMode = ServiceBusReceiveMode.PeekLock
+		});
+	}
 
-	//	return await queueClient.ReceiveMessagesAsync(AzureConstants.MessageGetCount, null, cancellationToken);
-	//}
+	private ServiceBusReceiver CreateTopicReceiver(
+		ServiceBusClient client,
+		string topicPath,
+		string topicSubscriptionPath,
+		CancellationToken cancellationToken)
+	{
+		return client.CreateReceiver(topicPath, topicSubscriptionPath, new ServiceBusReceiverOptions
+		{
+			ReceiveMode = ServiceBusReceiveMode.PeekLock
+		});
+	}
+
+	private static async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReceiveMessagesAsync(ServiceBusReceiver receiver, CancellationToken cancellationToken)
+	{
+		// Add synthetic delay to prevent locks persisting
+		var lockWaitDelay = TimeSpan.FromMilliseconds(500);
+		await Task.Delay(lockWaitDelay, cancellationToken);
+
+		return await receiver
+			.ReceiveMessagesAsync(AzureConstants.ServiceBusResourceMaxItemCount, null, cancellationToken);
+	}
 }

@@ -35,8 +35,8 @@ public partial class DownloadDialog : Page
 		}
 		else
 		{
-			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.MessageGetCount);
-			ItemMaxWarningDesciption.Text = string.Format(ItemMaxWarningDesciption.Text, AzureConstants.MessageGetCount);
+			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.ServiceBusResourceMaxItemCount);
+			ItemMaxWarningDesciption.Text = string.Format(ItemMaxWarningDesciption.Text, AzureConstants.ServiceBusResourceMaxItemCount);
 		}
 	}
 }

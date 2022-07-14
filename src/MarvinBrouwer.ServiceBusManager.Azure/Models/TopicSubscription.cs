@@ -5,10 +5,13 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 public sealed record TopicSubscription : AzureResource<ISubscription>
 {
-	public TopicSubscription(ISubscription subscription) : base(subscription)
+	public TopicSubscription(IServiceBusNamespace ServiceBus, ITopic topic, ISubscription subscription) : base(ServiceBus, subscription)
 	{
-		DeadLetter = new TopicSubscriptionDeadLetter(this);
+		DeadLetter = new TopicSubscriptionDeadLetter(ServiceBus, topic, this);
+		TopicPath = topic.Name;
 	}
-	
+
+	public string TopicPath { get; }
+
 	public TopicSubscriptionDeadLetter DeadLetter { get; }
 }

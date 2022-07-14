@@ -36,7 +36,7 @@ public partial class RequeueDialog : Page
 		}
 		else
 		{
-			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.MessageGetCount);
+			ItemMaxWarningMessage.Text = string.Format(ItemMaxWarningMessage.Text, AzureConstants.ServiceBusResourceMaxItemCount);
 		}
 	}
 }

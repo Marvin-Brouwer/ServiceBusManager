@@ -10,12 +10,13 @@ using System.Windows.Controls;
 using MarvinBrouwer.ServiceBusManager.Azure;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
 internal sealed class QueueTreeViewItem : ResourceTreeViewItem
 {
-	public QueueTreeViewItem(Queue queue) : base(queue.InnerResource)
+	public QueueTreeViewItem(Queue queue) : base(queue)
 	{
 		DisplayName = queue.InnerResource.Name;
 		Label = nameof(queue);
@@ -41,7 +42,7 @@ internal sealed class QueueTreeViewItem : ResourceTreeViewItem
 
 internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
 {
-	public QueueDeadLetterTreeViewItem(Queue queue) : base(queue.InnerResource)
+	public QueueDeadLetterTreeViewItem(Queue queue) : base(queue)
 	{
 		DisplayName = AzureConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";
@@ -52,7 +53,6 @@ internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
 
 		Queue = queue;
 		DeadLetter = queue.DeadLetter;
-		IsDeadLetter = true;
 	}
 
 	public override bool CanReload => false;

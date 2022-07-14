@@ -9,12 +9,13 @@ using System.Windows;
 using System.Windows.Controls;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
 public sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
 {
-	public ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus.InnerResource)
+	public ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus)
 	{
 		DisplayName = serviceBus.InnerResource.Name;
 		Label = serviceBus.InnerResource.ResourceGroupName;

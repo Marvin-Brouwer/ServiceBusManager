@@ -9,12 +9,13 @@ using System.Windows;
 using System.Windows.Controls;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
 public sealed class TopicTreeViewItem : ResourceTreeViewItem
 {
-	public TopicTreeViewItem(Topic topic) : base(topic.InnerResource)
+	public TopicTreeViewItem(Topic topic) : base(topic)
 	{
 		DisplayName = topic.InnerResource.Name;
 		Label = nameof(topic);

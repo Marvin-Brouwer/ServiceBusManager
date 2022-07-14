@@ -9,14 +9,14 @@ using System.Windows;
 using System.Windows.Controls;
 using MarvinBrouwer.ServiceBusManager.Azure;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
 
-using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
 internal sealed class TopicSubscriptionTreeViewItem : ResourceTreeViewItem
 {
-	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription.InnerResource)
+	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription)
 	{
 		DisplayName = topicSubscription.InnerResource.Name;
 		IconUrl = "/Resources/Icons/topic-subscription.png";
@@ -41,7 +41,7 @@ internal sealed class TopicSubscriptionTreeViewItem : ResourceTreeViewItem
 
 internal sealed class TopicSubscriptionDeadLetterTreeViewItem : ResourceTreeViewItem
 {
-	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription.InnerResource)
+	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription)
 	{
 		DisplayName = AzureConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";
@@ -53,7 +53,6 @@ internal sealed class TopicSubscriptionDeadLetterTreeViewItem : ResourceTreeView
 		Topic = topic;
 		TopicSubscription = topicSubscription;
 		DeadLetter = topicSubscription.DeadLetter;
-		IsDeadLetter = true;
 	}
 
 	public override bool CanReload => false;
