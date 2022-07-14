@@ -31,82 +31,139 @@ public sealed class AzureLandscapeRenderingService
 		_serviceBusService = serviceBusService;
 	}
 
-	public async IAsyncEnumerable<SubscriptionTreeViewItem> LoadSubscriptions([EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<SubscriptionTreeViewItem> LoadSubscriptions(
+		Action? doneCallBack, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var subscriptions = _subscriptionService.ListSubscriptions(cancellationToken);
-
+		var subscriptions = await _subscriptionService
+			.ListSubscriptions(cancellationToken)
+			.ToListAsync(cancellationToken);
+		
 		var hasCleared = false;
-		await foreach (var subscription in subscriptions.WithCancellation(cancellationToken))
+		foreach (var subscription in subscriptions)
 		{
 			if (!hasCleared) _azureLandscape.Items.Clear();
 			hasCleared = true;
 
 			var subscriptionTreeViewItem = new SubscriptionTreeViewItem(subscription);
 
-			subscriptionTreeViewItem.Loaded += async (_,_) => await LoadSubscriptionContents(subscriptionTreeViewItem, cancellationToken);
+			subscriptionTreeViewItem.Loaded += async (_,_) =>
+			{
+				var isLast = subscriptionTreeViewItem.Subscription == subscriptions.Last() ;
+					
+				await LoadSubscriptionContents(subscriptionTreeViewItem, isLast ? doneCallBack : null, cancellationToken);
+			};
 
 			yield return subscriptionTreeViewItem;
 			_azureLandscape.Items.Add(subscriptionTreeViewItem);
 		}
 	}
 
-	public async Task LoadSubscriptionContents(SubscriptionTreeViewItem subscriptionTreeViewItem, CancellationToken cancellationToken)
+	public async Task LoadSubscriptionContents(
+		SubscriptionTreeViewItem subscriptionTreeViewItem, Action? doneCallBack, CancellationToken cancellationToken)
 	{
 		subscriptionTreeViewItem.IsEnabled = false;
-		var serviceBuses = _serviceBusService.ListServiceBuses(subscriptionTreeViewItem.Subscription, cancellationToken);
+		subscriptionTreeViewItem.IsExpanded = false;
+		var serviceBuses = await _serviceBusService
+			.ListServiceBuses(subscriptionTreeViewItem.Subscription, cancellationToken)
+			.ToListAsync(cancellationToken);
 		
 		var hasCleared = false;
-		await foreach (var serviceBus in serviceBuses.WithCancellation(cancellationToken))
+		foreach (var serviceBus in serviceBuses)
 		{
-			if (!hasCleared) subscriptionTreeViewItem.Items.Clear();
-			hasCleared = true;
+			if (!hasCleared)
+			{
+				subscriptionTreeViewItem.Items.Clear();
+				subscriptionTreeViewItem.IsEnabled = true;
+				hasCleared = true;
+			}
 
 			var serviceBusTreeViewItem = new ServiceBusTreeViewItem(serviceBus);
 			subscriptionTreeViewItem.Items.Add(serviceBusTreeViewItem);
 
-			await LoadServiceBusResources(serviceBusTreeViewItem, cancellationToken);
+			var isLast = serviceBusTreeViewItem.ServiceBus == serviceBuses.Last();
+			await LoadServiceBusResources(serviceBusTreeViewItem, isLast ? doneCallBack : null, cancellationToken);
 		}
+
 		subscriptionTreeViewItem.IsEnabled = true;
 	}
 
 	public async Task LoadServiceBusResources(ServiceBusTreeViewItem serviceBusTreeViewItem,
-		CancellationToken cancellationToken)
+		Action? doneCallBack, CancellationToken cancellationToken)
 	{
 		serviceBusTreeViewItem.IsEnabled = false;
-		var (queues, topics) = _serviceBusService.ListServiceBusResources(serviceBusTreeViewItem.ServiceBus, cancellationToken);
+		serviceBusTreeViewItem.IsExpanded = false;
+		var (queues, topics) = _serviceBusService
+			.ListServiceBusResources(serviceBusTreeViewItem.ServiceBus, cancellationToken);
 
-		serviceBusTreeViewItem.Items.Clear();
+		var queueList = await queues
+			.ToListAsync(cancellationToken);
+		var topicList = await topics
+			.ToListAsync(cancellationToken);
 
-		await foreach (var queue in queues.WithCancellation(cancellationToken))
+		var hasCleared = false;
+
+		foreach (var queue in queueList)
 		{
+			if (!hasCleared)
+			{
+				serviceBusTreeViewItem.Items.Clear();
+				serviceBusTreeViewItem.IsEnabled = true;
+				hasCleared = true;
+			}
+
 			var queueTreeViewItem = new QueueTreeViewItem(queue);
 			serviceBusTreeViewItem.Items.Add(queueTreeViewItem);
 		}
 
-		await foreach (var topic in topics.WithCancellation(cancellationToken))
+		if (!topicList.Any())
 		{
+			serviceBusTreeViewItem.IsEnabled = true;
+			doneCallBack?.Invoke();
+			return;
+		}
+
+		foreach (var topic in topicList)
+		{
+			if (!hasCleared)
+			{
+				serviceBusTreeViewItem.Items.Clear();
+				serviceBusTreeViewItem.IsEnabled = true;
+				hasCleared = true;
+			}
+
 			var topicTreeViewItem = new TopicTreeViewItem(topic);
 			serviceBusTreeViewItem.Items.Add(topicTreeViewItem);
 
-			await LoadTopicSubscriptions(topicTreeViewItem, cancellationToken);
+			var isLast = topicTreeViewItem.Topic == topicList.Last();
+			await LoadTopicSubscriptions(topicTreeViewItem, isLast ?  doneCallBack : null, cancellationToken);
 		}
 
 		serviceBusTreeViewItem.IsEnabled = true;
 	}
 
-	public async Task LoadTopicSubscriptions(TopicTreeViewItem topicTreeViewItem, CancellationToken cancellationToken)
+	public async Task LoadTopicSubscriptions(
+		TopicTreeViewItem topicTreeViewItem, Action? doneCallBack, CancellationToken cancellationToken)
 	{
 		topicTreeViewItem.IsEnabled = false;
+		topicTreeViewItem.IsExpanded = false;
 		var topicSubscriptions = _serviceBusService.ListTopicSubscriptions(topicTreeViewItem.Topic, cancellationToken);
 
-		topicTreeViewItem.Items.Clear();
+		var hasCleared = false;
 
 		await foreach (var topicSubscription in topicSubscriptions.WithCancellation(cancellationToken))
 		{
+			if (!hasCleared)
+			{
+				topicTreeViewItem.Items.Clear();
+				topicTreeViewItem.IsEnabled = true;
+				hasCleared = true;
+			}
+
 			var topicSubscriptionTreeViewItem = new TopicSubscriptionTreeViewItem(topicSubscription, topicTreeViewItem.Topic);
 			topicTreeViewItem.Items.Add(topicSubscriptionTreeViewItem);
 		}
 
 		topicTreeViewItem.IsEnabled = true;
+		doneCallBack?.Invoke();
 	}
 }

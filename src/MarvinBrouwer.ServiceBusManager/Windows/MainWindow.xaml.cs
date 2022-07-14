@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Azure.Messaging.ServiceBus;
 using MarvinBrouwer.ServiceBusManager.Azure;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
 	private readonly IAzureAuthenticationService _azureAuthenticationService;
 	private readonly AzureLandscapeRenderingService _azureLandscapeRenderingService;
 	private readonly LocalStorageService _localStorageService;
+	private bool _windowLoading;
 
 	private CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
 
@@ -95,7 +97,7 @@ public partial class MainWindow : Window
 	private async void ReloadAzureLandscape(object sender, RoutedEventArgs e)
 	{
 		ClearStatusPanel();
-		AppendStatusMessage(@"Loading data...");
+		AppendStatusMessage(@"Reloading all data...");
 		await LoadFullAzureLandscape();
 	}
 
@@ -108,28 +110,29 @@ public partial class MainWindow : Window
 			treeViewItem.IsEnabled = false;
 			treeViewItem.IsExpanded = false;
 		}
+
+		WindowLoading = true;
 		AzureLandscape.IsEnabled = true;
-		CheckAzureLandscapeState();
 
-		var subscriptionTreeViewItems = _azureLandscapeRenderingService.LoadSubscriptions(CancellationToken);
-		await foreach (var subscriptionTreeViewItem in subscriptionTreeViewItems.WithCancellation(CancellationToken))
-		{
-			subscriptionTreeViewItem.IsEnabledChanged += (_, _) => CheckAzureLandscapeState();
-		}
+		var subscriptionTreeViewItems = _azureLandscapeRenderingService
+			.LoadSubscriptions(() =>
+			{
+				WindowLoading = false;
+				AppendStatusMessage(@"Done!");
+			}, CancellationToken);
 
-		CheckAzureLandscapeState();
+		await subscriptionTreeViewItems.ToListAsync(CancellationToken);
 	}
 
-	private bool AzureLandscapeIsLoading =>
-		AzureLandscape.Items.Count == 0 ||
-		!AzureLandscape.Items.Cast<SubscriptionTreeViewItem>().All(treeViewItem => treeViewItem.IsEnabled);
-
-	private void CheckAzureLandscapeState()
+	private bool WindowLoading
 	{
-		AzureLandscape.Cursor = AzureLandscapeIsLoading ? Cursors.AppStarting : Cursors.Arrow;
-		MenuItemReload.IsEnabled = !AzureLandscapeIsLoading;
-
-		if (!AzureLandscapeIsLoading) AppendStatusMessage(@"Done!");
+		get => _windowLoading;
+		set
+		{
+			_windowLoading = value;
+			AzureLandscape.Cursor = value ? Cursors.AppStarting : Cursors.Arrow;
+			ValidateButtonState();
+		}
 	}
 
 	private async void ReloadItem(object sender, RoutedEventArgs e)
@@ -137,22 +140,29 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is null) return;
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem { CanReload: true } baseTreeViewItem) return;
 
-		baseTreeViewItem.IsEnabled = false;
-		baseTreeViewItem.IsExpanded = false;
+		ClearStatusPanel();
+		AppendStatusMessage(@"Reloading item data...");
+		WindowLoading = true;
+
+		void DoneCallBack()
+		{
+			WindowLoading = false;
+			AppendStatusMessage(@"Done!");
+		}
 
 		if (AzureLandscape.SelectedItem is SubscriptionTreeViewItem subscriptionTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadSubscriptionContents(subscriptionTreeViewItem, CancellationToken);
+			await _azureLandscapeRenderingService.LoadSubscriptionContents(subscriptionTreeViewItem, DoneCallBack, CancellationToken);
 		}
 
 		if (AzureLandscape.SelectedItem is ServiceBusTreeViewItem serviceBusTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadServiceBusResources(serviceBusTreeViewItem, CancellationToken);
+			await _azureLandscapeRenderingService.LoadServiceBusResources(serviceBusTreeViewItem, DoneCallBack, CancellationToken);
 		}
 
 		if (AzureLandscape.SelectedItem is TopicTreeViewItem topicTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadTopicSubscriptions(topicTreeViewItem, CancellationToken);
+			await _azureLandscapeRenderingService.LoadTopicSubscriptions(topicTreeViewItem, DoneCallBack, CancellationToken);
 		}
 	}
 
@@ -199,6 +209,25 @@ public partial class MainWindow : Window
 		return (AzureConstants.ServiceBusResourceMaxItemCount, true);
 	}
 
+	private async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllResourceMessages(ResourceTreeViewItem treeViewItem)
+	{
+		AppendStatusMessage("Downloading message data (peek)");
+
+		var messages = await _resourceQueryService
+			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
+
+		AppendStatusMessage($"Downloaded {messages.Count} items");
+		return messages;
+	}
+	private async Task StoreData(DateTime timestamp, IAzureResource<IResource> selectedResource, IReadOnlyList<ServiceBusReceivedMessage> serviceBusMessages)
+	{
+		AppendStatusMessage(@"Storing resource data");
+
+		await _localStorageService.StoreResourceDownload(timestamp, selectedResource, serviceBusMessages, CancellationToken);
+
+		AppendStatusMessage(@"Download finished");
+	}
+
 	private async void ShowRequeueDialog(object sender, RoutedEventArgs e)
 	{
 		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
@@ -215,15 +244,11 @@ public partial class MainWindow : Window
 			AppendStatusMessage("Canceled");
 			return;
 		}
-		
-		AppendStatusMessage("Downloading message data (peek)");
-		var serviceBusMessages = await _resourceQueryService
-			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
 
-		if (storeDownload)
-		{
-			// TODO STORE
-		}
+		var timestamp = DateTime.UtcNow;
+		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem);
+
+		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
 		// TODO PUSH
 		throw new System.NotImplementedException();
@@ -246,12 +271,12 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		AppendStatusMessage("Downloading message data (peek)");
-		var serviceBusMessages = await _resourceQueryService
-			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
-		
-		// TODO STORE
-		throw new System.NotImplementedException();
+		var timestamp = DateTime.UtcNow;
+		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem);
+
+		await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
+
+		AppendStatusMessage("Done!");
 	}
 
 	private async void ShowUploadDialog(object sender, RoutedEventArgs e)
@@ -292,14 +317,10 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		AppendStatusMessage("Downloading message data (peek)");
-		var serviceBusMessages = await _resourceQueryService
-			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
+		var timestamp = DateTime.UtcNow;
+		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem);
 
-		if (storeDownload)
-		{
-			// TODO STORE
-		}
+		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
 
 		// TODO CLEAR
@@ -307,6 +328,11 @@ public partial class MainWindow : Window
 	}
 
 	private void SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+	{
+		ValidateButtonState();
+	}
+
+	private void ValidateButtonState()
 	{
 		if (AzureLandscape.SelectedItem is null)
 			SelectedItemChanged(null);
@@ -317,16 +343,17 @@ public partial class MainWindow : Window
 
 	private void SelectedItemChanged(BaseTreeViewItem? treeViewItem)
 	{
-		ButtonClear.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+		ButtonClear.IsEnabled = treeViewItem is not null && !WindowLoading
 			&& treeViewItem.IsEnabled && treeViewItem.CanClear;
-		ButtonDownload.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+		ButtonDownload.IsEnabled = treeViewItem is not null && !WindowLoading
 			&& treeViewItem.IsEnabled && treeViewItem.CanDownload;
-		ButtonRequeue.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+		ButtonRequeue.IsEnabled = treeViewItem is not null && !WindowLoading
 			&& treeViewItem.IsEnabled && treeViewItem.CanRequeue;
-		ButtonUpload.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+		ButtonUpload.IsEnabled = treeViewItem is not null && !WindowLoading
 			&& treeViewItem.IsEnabled && treeViewItem.CanUpload;
-
-		MenuItemReloadSelected.IsEnabled = treeViewItem is not null && !AzureLandscapeIsLoading
+		
+		MenuItemReload.IsEnabled = !WindowLoading;
+		MenuItemReloadSelected.IsEnabled = treeViewItem is not null && !WindowLoading
 			&& treeViewItem.IsEnabled && treeViewItem.CanReload;
 
 		CommandManager.InvalidateRequerySuggested();
