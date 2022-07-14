@@ -125,9 +125,9 @@ public sealed class LocalStorageService
 		if (resource is IAzureResource<IQueue>)
 			return $"{resource.ServiceBus.Name} queue-{resource.Path} {timestampMarker}";
 		if (resource is TopicSubscription topicSubscription)
-			return $"{resource.ServiceBus.Name} topic-{topicSubscription.TopicPath} subscription-{resource.Path} {timestampMarker}";
+			return $"{resource.ServiceBus.Name} topic-{topicSubscription.Topic.Name} subscription-{resource.Path} {timestampMarker}";
 		if (resource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
-			return $"{resource.ServiceBus.Name} topic-{topicSubscriptionDeadLetter.TopicPath} subscription-{resource.Path} {timestampMarker}";
+			return $"{resource.ServiceBus.Name} topic-{topicSubscriptionDeadLetter.Topic.Name} subscription-{resource.Path} {timestampMarker}";
 
 		return $"{resource.ServiceBus.Name} {resource.Path} {timestampMarker}";
 	}

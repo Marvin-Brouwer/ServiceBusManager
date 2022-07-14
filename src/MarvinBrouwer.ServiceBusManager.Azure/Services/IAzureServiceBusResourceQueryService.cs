@@ -7,5 +7,6 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 public interface IAzureServiceBusResourceQueryService
 {
 	Task<long> GetMessageCount(IAzureResource<IResource> selectedResource, CancellationToken cancellationToken);
-	Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(IAzureResource<IResource> selectedResource, CancellationToken cancellationToken);
+	Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(
+		IAzureResource<IResource> selectedResource, ServiceBusReceiveMode receiveMode, CancellationToken cancellationToken);
 }

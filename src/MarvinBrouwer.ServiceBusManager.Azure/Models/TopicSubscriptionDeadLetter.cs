@@ -6,10 +6,10 @@ public sealed record TopicSubscriptionDeadLetter(IServiceBusNamespace ServiceBus
 {
 	public TopicSubscriptionDeadLetter(IServiceBusNamespace ServiceBus, ITopic topic, TopicSubscription subscription) : this(ServiceBus, subscription)
 	{
-		TopicPath = topic.Name;
+		Topic = topic;
 	}
 
-	public string TopicPath { get; }
+	public ITopic Topic { get; }
 
 	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(InnerResource.Name);
 }

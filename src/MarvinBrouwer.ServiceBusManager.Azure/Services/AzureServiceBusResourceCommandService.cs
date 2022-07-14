@@ -1,96 +1,61 @@
-//using System.Runtime.Serialization;
-//using Azure.Messaging.ServiceBus;
-//using MarvinBrouwer.ServiceBusManager.Azure.Models;
-//using Newtonsoft.Json.Linq;
+using System.Runtime.Serialization;
+using Azure.Messaging.ServiceBus;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
+using Newtonsoft.Json.Linq;
 
-//namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
+namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
-//internal class AzureServiceBusResourceCommandService : IAzureServiceBusResourceCommandService
-//{
-//	private readonly IAzureServiceBusClientFactory _clientFactory;
+public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusResourceCommandService
+{
+	public Task QueueMessages(IAzureResource<IResource> selectedResource, IReadOnlyList<(BinaryData blob, string contentType)> messages,  CancellationToken cancellationToken)
+	{
+		if (selectedResource is QueueDeadLetter queueDeadLetter)
+			return QueueMessagesToQueue(queueDeadLetter.Queue.InnerResource, ConvertMessages(messages), cancellationToken);
+		if (selectedResource is TopicSubscription topicSubscription)
+			return QueueMessagesToTopic(topicSubscription.Topic, ConvertMessages(messages), cancellationToken);
+		if (selectedResource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
+			return QueueMessagesToTopic(topicSubscriptionDeadLetter.Topic, ConvertMessages(messages), cancellationToken);
 
-//	public AzureServiceBusResourceCommandService(IAzureServiceBusClientFactory clientFactory)
-//	{
-//		_clientFactory = clientFactory;
-//	}
+		throw new NotSupportedException(selectedResource.GetType().FullName);
+	}
 
-//	public static async Task ClearResource(MessageHandler resourceData, CancellationToken cancellationToken)
-//	{
-//		var tasks = resourceData.Messages.Select(dataItem =>
-//			resourceData.Receiver.CompleteMessageAsync(dataItem, cancellationToken));
-//		await Task.WhenAll(tasks);
-//	}
+	public Task QueueMessages(IAzureResource<IResource> selectedResource, IReadOnlyList<ServiceBusReceivedMessage> messages, CancellationToken cancellationToken)
+	{
+		if (selectedResource is QueueDeadLetter queueDeadLetter)
+			return QueueMessagesToQueue(queueDeadLetter.Queue.InnerResource, ConvertMessages(messages), cancellationToken);
+		if (selectedResource is TopicSubscription topicSubscription)
+			return QueueMessagesToTopic(topicSubscription.Topic, ConvertMessages(messages), cancellationToken);
+		if (selectedResource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
+			return QueueMessagesToTopic(topicSubscriptionDeadLetter.Topic, ConvertMessages(messages), cancellationToken);
 
-//	public static async Task ReleaseResource(MessageHandler resourceData, CancellationToken cancellationToken)
-//	{
-//		var tasks = resourceData.Messages.Select(dataItem =>
-//			resourceData.Receiver.AbandonMessageAsync(dataItem, null, cancellationToken));
-//		await Task.WhenAll(tasks);
-//	}
+		throw new NotSupportedException(selectedResource.GetType().FullName);
+	}
 
-//	public Task RequeueDistinctBy(MessageHandler resourceData, string propertyName, CancellationToken cancellationToken)
-//	{
-//		var convertedMessages = resourceData.Messages
-//			.OrderBy(message => message.SequenceNumber)
-//			.Select(message => ConvertMessage(message, propertyName))
-//			.ToList();
+	private IReadOnlyList<ServiceBusMessage> ConvertMessages(IReadOnlyList<ServiceBusReceivedMessage> messages)
+	{
+		return messages
+			.Select(message => new ServiceBusMessage(message))
+			.ToList();
+	}
 
-//		if (convertedMessages.Any(message => string.IsNullOrWhiteSpace(message.id)))
-//			throw new InvalidDataContractException($"The array contains an item without the {propertyName} property");
+	private IReadOnlyList<ServiceBusMessage> ConvertMessages(IReadOnlyList<(BinaryData blob, string contentType)> messages)
+	{
+		return messages
+			.Select(message => new ServiceBusMessage(message.blob){ ContentType = message.contentType })
+			.ToList();
+	}
 
-//		return RequeueMessages(resourceData, convertedMessages, cancellationToken);
-//	}
+	private Task QueueMessagesToQueue(IQueue queue, IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
+	{
+		// TODO
+		throw new NotImplementedException();
+	}
 
-//	private async Task RequeueMessages(
-//		MessageHandler resourceData,
-//		List<(ServiceBusReceivedMessage message, string? id)> convertedMessages,
-//		CancellationToken cancellationToken)
-//	{
-//		foreach (var (message, _) in convertedMessages
-//			.GroupBy(message => message.id)
-//			.Select(group => @group.First()))
-//		{
-//			await using var sender = _clientFactory.CreateServiceBusSender(resourceData);
-//			var sendMessage = new ServiceBusMessage(message.Body)
-//			{
-//				ContentType = message.ContentType
-//			};
-//			await sender.SendMessageAsync(sendMessage, cancellationToken);
-//			await sender.CloseAsync(cancellationToken);
-//		}
-//	}
-
-//	public async Task QueueMessages(
-//		ServiceBusResource selectedResource,
-//		List<string> messages,
-//		CancellationToken cancellationToken)
-//	{
-//		var client = await _clientFactory.GetServiceBusClient(selectedResource.ServiceBus.Secret, cancellationToken);
-//		await using var sender = _clientFactory.CreateServiceBusSender(selectedResource, client);
-
-//		try
-//		{
-//			foreach (var message in messages)
-//			{
-//				var sendMessage = new ServiceBusMessage(message)
-//				{
-//					ContentType = "application/json"
-//				};
-//				await sender.SendMessageAsync(sendMessage, cancellationToken);
-//			}
-//		}
-//		finally
-//		{
-//			await sender.CloseAsync(cancellationToken);
-//		}
-//	}
-
-
-//	private static (ServiceBusReceivedMessage message, string? id) ConvertMessage(ServiceBusReceivedMessage message, string propertyName)
-//	{
-//		if (!message.ContentType.Contains("json"))
-//			throw new NotSupportedException("This content type is not supported");
-
-//		return (message, JObject.Parse(message.Body.ToString())[propertyName]?.Value<string>());
-//	}
-//}
+	private Task QueueMessagesToTopic(ITopic topic, IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
+	{
+		// TODO
+		throw new NotImplementedException();
+	}
+}

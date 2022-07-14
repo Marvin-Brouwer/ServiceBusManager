@@ -46,7 +46,7 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 	}
 	
 	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(
-		IAzureResource<IResource> selectedResource, CancellationToken cancellationToken)
+		IAzureResource<IResource> selectedResource, ServiceBusReceiveMode receiveMode, CancellationToken cancellationToken)
 	{
 		var connectionString = await selectedResource.ServiceBus
 			.GetAccessConnectionString(AccessRights.Listen, cancellationToken);
@@ -59,22 +59,24 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 
 		if (selectedResource is IAzureResource<IQueue>)
 		{
-			var queueReceiver = CreateQueueReceiver(client, selectedResource.Path, cancellationToken);
+			var queueReceiver = CreateQueueReceiver(client, selectedResource.Path, receiveMode);
 			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
 		}
 
 		if (selectedResource is TopicSubscription subscription)
 		{
 			var queueReceiver = CreateTopicReceiver(client,
-				subscription.TopicPath,
-				subscription.Path, cancellationToken);
+				subscription.Topic.Name,
+				subscription.Path,
+				receiveMode);
 			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
 		}
 		if (selectedResource is TopicSubscriptionDeadLetter deadLetterSubscription)
 		{
 			var queueReceiver = CreateTopicReceiver(client,
-				deadLetterSubscription.TopicPath,
-				deadLetterSubscription.Path, cancellationToken);
+				deadLetterSubscription.Topic.Name,
+				deadLetterSubscription.Path,
+				receiveMode);
 			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
 		}
 
@@ -84,11 +86,11 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 	private ServiceBusReceiver CreateQueueReceiver(
 		ServiceBusClient client,
 		string path,
-		CancellationToken cancellationToken)
+		ServiceBusReceiveMode receiveMode)
 	{
 		return client.CreateReceiver(path, new ServiceBusReceiverOptions
 		{
-			ReceiveMode = ServiceBusReceiveMode.PeekLock
+			ReceiveMode = receiveMode
 		});
 	}
 
@@ -96,11 +98,11 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 		ServiceBusClient client,
 		string topicPath,
 		string topicSubscriptionPath,
-		CancellationToken cancellationToken)
+		ServiceBusReceiveMode receiveMode)
 	{
 		return client.CreateReceiver(topicPath, topicSubscriptionPath, new ServiceBusReceiverOptions
 		{
-			ReceiveMode = ServiceBusReceiveMode.PeekLock
+			ReceiveMode = receiveMode
 		});
 	}
 

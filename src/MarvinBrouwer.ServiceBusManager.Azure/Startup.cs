@@ -16,5 +16,6 @@ public static class Startup
 		services.AddScoped<IAzureSubscriptionService, AzureSubscriptionService>();
 		services.AddScoped<IAzureServiceBusService, AzureServiceBusService>();
 		services.AddScoped<IAzureServiceBusResourceQueryService, AzureServiceBusResourceQueryService>();
+		services.AddScoped<IAzureServiceBusResourceCommandService, AzureServiceBusResourceCommandService>();
 	}
 }

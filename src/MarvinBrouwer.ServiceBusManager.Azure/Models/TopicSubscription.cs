@@ -8,10 +8,9 @@ public sealed record TopicSubscription : AzureResource<ISubscription>
 	public TopicSubscription(IServiceBusNamespace ServiceBus, ITopic topic, ISubscription subscription) : base(ServiceBus, subscription)
 	{
 		DeadLetter = new TopicSubscriptionDeadLetter(ServiceBus, topic, this);
-		TopicPath = topic.Name;
+		Topic = topic;
 	}
-
-	public string TopicPath { get; }
-
+	
+	public ITopic Topic { get; }
 	public TopicSubscriptionDeadLetter DeadLetter { get; }
 }

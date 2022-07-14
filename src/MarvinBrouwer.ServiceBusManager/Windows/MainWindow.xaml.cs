@@ -33,6 +33,7 @@ namespace MarvinBrouwer.ServiceBusManager;
 /// </summary>
 public partial class MainWindow : Window
 {
+	private readonly IAzureServiceBusResourceCommandService _resourceCommandService;
 	private readonly IAzureServiceBusResourceQueryService _resourceQueryService;
 	private readonly IAzureAuthenticationService _azureAuthenticationService;
 	private readonly AzureLandscapeRenderingService _azureLandscapeRenderingService;
@@ -42,17 +43,19 @@ public partial class MainWindow : Window
 	private CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
 
 	public MainWindow(
-		IAzureServiceBusResourceQueryService resourceQueryService,
 		IAzureAuthenticationService azureAuthenticationService,
 		Func<TreeView, AzureLandscapeRenderingService> azureLandscapeRenderingService,
-		LocalStorageService localStorageService)
+		LocalStorageService localStorageService,
+		IAzureServiceBusResourceQueryService resourceQueryService,
+		IAzureServiceBusResourceCommandService resourceCommandService)
 	{
 		InitializeComponent();
 
-		_resourceQueryService = resourceQueryService;
 		_azureAuthenticationService = azureAuthenticationService;
 		_azureLandscapeRenderingService = azureLandscapeRenderingService(AzureLandscape);
 		_localStorageService = localStorageService;
+		_resourceQueryService = resourceQueryService;
+		_resourceCommandService = resourceCommandService;
 
 		InitializeWindow();
 	}
@@ -209,12 +212,13 @@ public partial class MainWindow : Window
 		return (AzureConstants.ServiceBusResourceMaxItemCount, true);
 	}
 
-	private async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllResourceMessages(ResourceTreeViewItem treeViewItem)
+	private async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllResourceMessages(
+		ResourceTreeViewItem treeViewItem, ServiceBusReceiveMode receiveMode)
 	{
-		AppendStatusMessage("Downloading message data (peek)");
+		AppendStatusMessage($"Downloading message data ({receiveMode})");
 
 		var messages = await _resourceQueryService
-			.ReadAllMessages(treeViewItem.Resource, CancellationToken);
+			.ReadAllMessages(treeViewItem.Resource, receiveMode, CancellationToken);
 
 		AppendStatusMessage($"Downloaded {messages.Count} items");
 		return messages;
@@ -246,12 +250,12 @@ public partial class MainWindow : Window
 		}
 
 		var timestamp = DateTime.UtcNow;
-		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem);
+		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem, ServiceBusReceiveMode.PeekLock);
 
 		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
-
-		// TODO PUSH
-		throw new System.NotImplementedException();
+		
+		await _resourceCommandService.QueueMessages(treeViewItem.Resource, serviceBusMessages, CancellationToken);
+		AppendStatusMessage($"Requeued {itemCount} items");
 	}
 
 	private async void ShowDownloadDialog(object sender, RoutedEventArgs e)
@@ -272,7 +276,7 @@ public partial class MainWindow : Window
 		}
 
 		var timestamp = DateTime.UtcNow;
-		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem);
+		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem, ServiceBusReceiveMode.PeekLock);
 
 		await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
@@ -296,8 +300,8 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		// TODO PUSH
-		throw new System.NotImplementedException();
+		await _resourceCommandService.QueueMessages(treeViewItem.Resource, new List<(BinaryData blob, string contentType)>() /* todo */, CancellationToken);
+		AppendStatusMessage($"Uploaded {99 /*todo*/} items");
 	}
 
 	private async void ShowClearDialog(object sender, RoutedEventArgs e)
@@ -318,13 +322,11 @@ public partial class MainWindow : Window
 		}
 
 		var timestamp = DateTime.UtcNow;
-		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem);
+		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem, ServiceBusReceiveMode.ReceiveAndDelete);
 
 		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
-
-		// TODO CLEAR
-		throw new System.NotImplementedException();
+		AppendStatusMessage($"Cleared {itemCount} items");
 	}
 
 	private void SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
