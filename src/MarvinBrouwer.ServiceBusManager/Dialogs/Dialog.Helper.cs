@@ -1,5 +1,4 @@
 using MarvinBrouwer.ServiceBusManager.Azure;
-using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using MarvinBrouwer.ServiceBusManager.Components;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;

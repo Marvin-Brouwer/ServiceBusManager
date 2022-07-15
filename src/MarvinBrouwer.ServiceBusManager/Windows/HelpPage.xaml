@@ -1,0 +1,23 @@
+<Page x:Class="MarvinBrouwer.ServiceBusManager.Windows.HelpPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MarvinBrouwer.ServiceBusManager.Windows"
+      mc:Ignorable="d" 
+      Width="900"
+      Height="550"
+      Title="HelpPage">
+	<Page.Background>
+		<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
+	</Page.Background>
+	<Grid>
+		<WebBrowser 
+			x:Name="ReadmeRenderer"
+			Visibility="Collapsed"
+			Width="900"
+			Height="550"
+			Margin="10"
+			ScrollViewer.CanContentScroll="True" />
+	</Grid>
+</Page>

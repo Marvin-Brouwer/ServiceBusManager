@@ -12,14 +12,14 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Input;
+using Microsoft.Win32;
+using Microsoft.Xaml.Behaviors.Core;
 
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
@@ -40,7 +40,7 @@ public partial class MainWindow : Window
 	private bool _windowLoading;
 
 	private static CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
-
+	
 	public MainWindow(
 		IAzureAuthenticationService azureAuthenticationService,
 		Func<TreeView, IAzureLandscapeRenderingService> azureLandscapeRenderingService,
@@ -86,10 +86,31 @@ public partial class MainWindow : Window
 	{
 		StatusBox.Children.Clear();
 	}
+
+	private void SetupKeyBindings()
+	{
+		KeyDown += async (_, keyArgs) =>
+		{
+			if (keyArgs.Key == Key.F1) await ShowReadme();
+			else if (keyArgs.Key == Key.Escape) HideReadme();
+
+			if (keyArgs.Key == Key.F5 && !keyArgs.IsRepeat && !WindowLoading)
+			{
+				if (Keyboard.IsKeyDown(Key.LeftCtrl) || AzureLandscape.SelectedItem is null)
+					await ReloadAzureLandscape();
+				else
+				{
+					await ReloadItem();
+				}
+			}
+		};
+	}
 	#endregion
 
 	private async void WindowLoaded()
 	{
+		WindowLoading = true;
+		SetupKeyBindings();
 		await _azureAuthenticationService.AuthenticateDefaultTenant(CancellationToken);
 		_localStorageService.PrepareDownloadFolder();
 		Cursor = Cursors.Arrow;
@@ -97,6 +118,11 @@ public partial class MainWindow : Window
 	}
 
 	private async void ReloadAzureLandscape(object sender, RoutedEventArgs e)
+	{
+		await ReloadAzureLandscape();
+	}
+
+	private async Task ReloadAzureLandscape()
 	{
 		ClearStatusPanel();
 		AppendStatusMessage(@"Reloading all data...");
@@ -136,7 +162,8 @@ public partial class MainWindow : Window
 		}
 	}
 
-	private async void ReloadItem(object sender, RoutedEventArgs e)
+	private async void ReloadItem(object sender, RoutedEventArgs e) => await ReloadItem();
+	private async Task ReloadItem()
 	{
 		if (AzureLandscape.SelectedItem is null) return;
 		if (AzureLandscape.SelectedItem is not BaseTreeViewItem { CanReload: true } baseTreeViewItem) return;
@@ -181,22 +208,24 @@ public partial class MainWindow : Window
 		});
 	}
 
-	private void ShowReadmeWindow(object sender, RoutedEventArgs e)
+	private async void ShowReadmeWindow(object sender, RoutedEventArgs e) => await ShowReadme();
+	private async Task ShowReadme()
 	{
-		if (ReadmeRenderer.Source is null)
+		#if !DEBUG
+		if (HelpFrame.Visibility == Visibility.Collapsed)
+		#endif
 		{
-			// This is probably not efficient but we couldn't find a better way.
-			ReadmeRenderer.Source = new Uri("pack://application:,,,./Readme.md");
-
-			var resource = Application.GetResourceStream(ReadmeRenderer.Source);
-			using var reader = new StreamReader(resource!.Stream);
-
-			ReadmeRenderer.Markdown = reader.ReadToEnd(); ;
+			ButtonReadme.IsEnabled = false;
+			HelpFrame.Content = await HelpPage.Load();
+			HelpFrame.Visibility = Visibility.Visible;
+			ButtonReadme.IsEnabled = true;
 		}
+
 		HelpPanel.Visibility = Visibility.Visible;
 	}
 
-	private void HideReadmeWindow(object sender, RoutedEventArgs e)
+	private void HideReadmeWindow(object sender, RoutedEventArgs e) => HideReadme();
+	private void HideReadme()
 	{
 		HelpPanel.Visibility = Visibility.Collapsed;
 	}
@@ -310,14 +339,12 @@ public partial class MainWindow : Window
 			CheckFileExists = true,
 			InitialDirectory = _localStorageService.DownloadFolderPath,
 			Multiselect = true,
-			SupportMultiDottedExtensions = true,
 			Title = @"Select files to upload",
 			ReadOnlyChecked = true,
 			AddExtension = true,
 			Filter = "Data|*.zip;*.json;*.xml;*.txt"
 		};
-		if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK
-		 || openFileDialog.SafeFileNames.Length == 0)
+		if (openFileDialog.ShowDialog() != true || openFileDialog.SafeFileNames.Length == 0)
 		{
 			AppendStatusMessage("No file selected");
 			WindowLoading = false;

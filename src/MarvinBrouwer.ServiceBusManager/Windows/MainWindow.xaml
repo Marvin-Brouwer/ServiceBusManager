@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
         mc:Ignorable="d"
         Title="ServiceBus Manager"
         Icon="/Resources/app-icon.ico"
@@ -99,13 +98,13 @@
 		        Width="100" 
 		        Margin="10, 10, 10, 0"
 			    HorizontalAlignment="Left"/>
-			<mdxam:MarkdownScrollViewer xml:space="preserve"
-				x:Name="ReadmeRenderer"
+			<Frame 
+				x:Name="HelpFrame"
+				NavigationUIVisibility="Hidden"
+				Visibility="Collapsed"
                 Width="900"
                 Height="550"
-				Margin="10"
-                HorizontalScrollBarVisibility="Hidden"
-				BaseUri="/" />
+				Margin="10"/>
 		</StackPanel>
 	</Grid>
 

@@ -6,7 +6,6 @@ Attributions are made because we didn't pay for these and flaticon requires us t
 Also, if we ever publish this to the open-source community we don't have to look back for these.  
 
 
-WARNING ICON https://www.flaticon.com/free-icon/warning_595067
 <a href="https://www.flaticon.com/free-icon/unemployment_4840311">
 	<img src="./Resources/Icons/app-icon.png" alt="" width="18" height="18" class="icon"/>The application icon
 </a><br/>
@@ -33,6 +32,9 @@ WARNING ICON https://www.flaticon.com/free-icon/warning_595067
 </a><br/>
 <a href="https://www.flaticon.com/free-icon/books-stack-of-three_29302">
 	<img src="./Resources/Icons/dead-letter.png" alt="" width="18" height="18" class="icon"/>The dead letter icon
+</a><br/>
+<a href="https://www.flaticon.com/free-icon/warning_595067">
+	<img src="./Resources/Icons/warning.png" alt="" width="18" height="18" class="icon"/>The prompt warning icon
 </a>
 
 <style>
