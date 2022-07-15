@@ -1,17 +1,8 @@
-using Azure.Core;
-using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using MarvinBrouwer.ServiceBusManager.Azure.Extensions;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
-using Microsoft.Azure;
-using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
-using Microsoft.Azure.Management.ServiceBus.Fluent.Models;
-using Microsoft.Azure.ServiceBus.Management;
-using Microsoft.Azure.ServiceBus.Primitives;
-using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Azure;
 using AccessRights = Microsoft.Azure.Management.ServiceBus.Fluent.Models.AccessRights;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -48,14 +39,7 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(
 		IAzureResource<IResource> selectedResource, ServiceBusReceiveMode receiveMode, CancellationToken cancellationToken)
 	{
-		var connectionString = await selectedResource.ServiceBus
-			.GetAccessConnectionString(AccessRights.Listen, cancellationToken);
-
-		var client = new ServiceBusClient(connectionString, new ServiceBusClientOptions
-		{
-			EnableCrossEntityTransactions = true,
-			TransportType = ServiceBusTransportType.AmqpTcp
-		});
+		var client = await selectedResource.ServiceBus.CreateServiceBusClient(AccessRights.Listen, cancellationToken);
 
 		if (selectedResource is IAzureResource<IQueue>)
 		{
@@ -82,6 +66,7 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
+
 
 	private ServiceBusReceiver CreateQueueReceiver(
 		ServiceBusClient client,

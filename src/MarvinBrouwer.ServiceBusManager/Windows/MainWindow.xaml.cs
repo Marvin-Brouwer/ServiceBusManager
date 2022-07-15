@@ -7,11 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Azure.Messaging.ServiceBus;
 using MarvinBrouwer.ServiceBusManager.Azure;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
@@ -19,8 +16,6 @@ using MarvinBrouwer.ServiceBusManager.Azure.Services;
 using MarvinBrouwer.ServiceBusManager.Components;
 using MarvinBrouwer.ServiceBusManager.Dialogs;
 using MarvinBrouwer.ServiceBusManager.Services;
-using MdXaml;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
@@ -291,17 +286,46 @@ public partial class MainWindow : Window
 		ClearStatusPanel();
 		AppendStatusMessage("Selecting file(s) to upload");
 
-		// TODO select, unpack, count
+		var openFileDialog = new OpenFileDialog
+		{
+			CheckFileExists = true,
+			InitialDirectory = _localStorageService.DownloadFolderPath,
+			Multiselect = true,
+			SupportMultiDottedExtensions = true,
+			Title = @"Select files to upload",
+			ReadOnlyChecked = true,
+			AddExtension = true,
+			Filter = "Data|*.zip;*.json;*.xml;*.txt"
+		};
+		if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK
+		 || openFileDialog.SafeFileNames.Length == 0)
+		{
+			AppendStatusMessage("No file selected");
+			return;
+		}
 
-		var upload = Dialog.ConfirmUpload(treeViewItem, "todo filename.ext" /* todo */, 99 /*todo*/);
+		AppendStatusMessage(openFileDialog.SafeFileNames.Length == 1
+			? "1 file selected"
+			: $"{openFileDialog.SafeFileNames.Length} files selected");
+		AppendStatusMessage(openFileDialog.SafeFileNames.Length == 1
+			? "Reading file..."
+			: "Reading files");
+
+		var dataToPush = await _localStorageService
+			.ReadFileData(openFileDialog.FileNames, CancellationToken)
+			.ToListAsync(CancellationToken);
+
+		var upload = Dialog.ConfirmUpload(treeViewItem,
+			string.Join(", ", openFileDialog.SafeFileNames), dataToPush.Count);
 		if (!upload)
 		{
 			AppendStatusMessage("Canceled");
 			return;
 		}
 
-		await _resourceCommandService.QueueMessages(treeViewItem.Resource, new List<(BinaryData blob, string contentType)>() /* todo */, CancellationToken);
-		AppendStatusMessage($"Uploaded {99 /*todo*/} items");
+		await _resourceCommandService
+			.QueueMessages(treeViewItem.Resource, dataToPush, CancellationToken);
+		AppendStatusMessage($"Uploaded {dataToPush.Count} items");
 	}
 
 	private async void ShowClearDialog(object sender, RoutedEventArgs e)

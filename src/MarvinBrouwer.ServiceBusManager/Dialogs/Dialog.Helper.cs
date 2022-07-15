@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MarvinBrouwer.ServiceBusManager.Azure;
-using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using MarvinBrouwer.ServiceBusManager.Components;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
@@ -14,7 +8,7 @@ public partial class Dialog
 	internal static (bool requeue, bool storeDownload) ConfirmRequeue(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
-		var dialog = new Dialog($"Requeue items from `{resourceName}`?", "Download before requeue?",
+		var dialog = new Dialog($"Requeue items from `{resourceName}`?", "Store locally before requeue?",
 			new RequeueDialog(item is TopicSubscriptionDeadLetterTreeViewItem, itemCount, maxItemsReached));
 
 		var requeue = dialog.ShowDialog() ?? false;
@@ -33,7 +27,7 @@ public partial class Dialog
 	internal static (bool clear, bool storeDownload) ConfirmClear(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
-		var dialog = new Dialog($"Clear items from `{resourceName}`?", "Download before clear?",
+		var dialog = new Dialog($"Clear items from `{resourceName}`?", "Store locally before clear?",
 			new ClearDialog(itemCount, maxItemsReached));
 
 		var clear = dialog.ShowDialog() ?? false;

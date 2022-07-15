@@ -23,7 +23,7 @@ public sealed class LocalStorageService
 	private const string DownloadFolderName = "Downloads";
 
 	private readonly string _applicationPath;
-	private readonly string _downloadFolderPath;
+	public string DownloadFolderPath { get; }
 
 	public LocalStorageService()
 	{
@@ -31,12 +31,13 @@ public sealed class LocalStorageService
 			Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
 			Path.GetFileNameWithoutExtension(GetType().Module.Name)
 		);
-		_downloadFolderPath = Path.Join(_applicationPath, DownloadFolderName);
+		DownloadFolderPath = Path.Join(_applicationPath, DownloadFolderName);
 	}
+
 
 	public void PrepareDownloadFolder()
 	{
-		if (!Directory.Exists(_downloadFolderPath)) Directory.CreateDirectory(_downloadFolderPath);
+		if (!Directory.Exists(DownloadFolderPath)) Directory.CreateDirectory(DownloadFolderPath);
 	}
 
 	public void OpenDownloadFolder()
@@ -56,7 +57,7 @@ public sealed class LocalStorageService
 		var archiveFileName = GetArchiveFileName(resource, timestamp);
 
 		var tempDir = AcquireTemporaryStorageDirectory(archiveFileName);
-		var destinationPath = Path.Combine(_downloadFolderPath, $"{archiveFileName}.zip");
+		var destinationPath = Path.Combine(DownloadFolderPath, $"{archiveFileName}.zip");
 
 		try
 		{
@@ -80,8 +81,11 @@ public sealed class LocalStorageService
 		foreach (var dataResult in messages)
 		{
 			if (cancellationToken.IsCancellationRequested) break;
-
-			var extension = MimeTypeMap.GetExtension(dataResult.ContentType) ?? ".file";
+			
+			const string defaultContentType = ".txt";
+			var extension = string.IsNullOrWhiteSpace(dataResult.ContentType)
+				? defaultContentType
+				: MimeTypeMap.GetExtension(dataResult.ContentType) ?? defaultContentType;
 			var fileName = $"{dataResult.MessageId}{extension}";
 
 			await using var dataStream = dataResult.Body.ToStream();
@@ -132,42 +136,74 @@ public sealed class LocalStorageService
 		return $"{resource.ServiceBus.Name} {resource.Path} {timestampMarker}";
 	}
 
-	// TODO, we can do better
-	public static IAsyncEnumerable<string> ReadDownloads(string[] fileNames, CancellationToken cancellationToken)
-	{
-		var zipFiles = fileNames.Where(fileName => fileName.EndsWith(".zip"));
-		var zipFileContents = ReadZipFiles(zipFiles);
+	private static bool IsDataFilePath(string filePath) =>
+		filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ||
+		filePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) ||
+		filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
 
-		return ReadFileData(zipFileContents, cancellationToken);
-	}
-
-	private static async IAsyncEnumerable<string> ReadZipFiles(IEnumerable<string> zipFiles)
+	public async IAsyncEnumerable<(BinaryData fileBlob, string contentType)> ReadFileData(string[] fileNames, CancellationToken cancellationToken)
 	{
-		foreach (var filePath in zipFiles)
+		var rawFilePaths = fileNames.Where(IsDataFilePath);
+		var rawFiles = ReadFileData(rawFilePaths, cancellationToken);
+		var zipFilePaths = fileNames.Where(fileName => fileName.EndsWith(".zip"));
+		var zipFiles = ReadZipData(zipFilePaths, cancellationToken);
+
+		await foreach (var fileBlob in rawFiles.WithCancellation(cancellationToken))
 		{
-			await using var fileStream = File.OpenRead(filePath);
-			using var archive = new ZipFile(fileStream);
-			foreach (ZipEntry entry in archive)
-			{
-				if (entry.IsDirectory) continue;
-				if (!entry.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) continue;
+			yield return fileBlob;
+		}
 
-				await using var entryStream = archive.GetInputStream(entry);
-				using var stringReader = new StreamReader(entryStream);
-
-				yield return await stringReader.ReadToEndAsync();
-			}
+		await foreach (var fileBlob in zipFiles.WithCancellation(cancellationToken))
+		{
+			yield return fileBlob;
 		}
 	}
 
-	private static async IAsyncEnumerable<string> ReadFileData(IAsyncEnumerable<string> jsonFiles, [EnumeratorCancellation] CancellationToken cancellationToken)
+	private static async IAsyncEnumerable<(BinaryData fileBlob, string contentType)> ReadFileData(
+		IEnumerable<string> filePaths, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		await foreach (var fileName in jsonFiles.WithCancellation(cancellationToken))
+		foreach (var filePath in filePaths)
 		{
 			if (cancellationToken.IsCancellationRequested) yield break;
 
-			using var fileStream = File.OpenText(fileName);
-			yield return await fileStream.ReadToEndAsync();
+			await using var fileStream = File.OpenRead(filePath);
+			using var streamReader = new StreamReader(fileStream, Encoding.UTF8);
+
+			if (cancellationToken.IsCancellationRequested) yield break;
+			var fileBlob = new BinaryData(await streamReader.ReadToEndAsync());
+			var contentType = MimeTypeMap.GetMimeType(Path.GetExtension(filePath));
+
+			if (cancellationToken.IsCancellationRequested) yield break;
+			yield return (fileBlob, contentType);
+		}
+	}
+
+	private static async IAsyncEnumerable<(BinaryData fileBlob, string contentType)> ReadZipData(
+		IEnumerable<string> zipFilePaths, [EnumeratorCancellation] CancellationToken cancellationToken)
+	{
+		foreach (var filePath in zipFilePaths)
+		{
+			if (cancellationToken.IsCancellationRequested) yield break;
+			await using var fileStream = File.OpenRead(filePath);
+			using var archive = new ZipFile(fileStream);
+
+			if (cancellationToken.IsCancellationRequested) yield break;
+			foreach (ZipEntry entry in archive)
+			{
+				if (entry.IsDirectory) continue;
+				if (!IsDataFilePath(entry.Name)) continue;
+
+				if (cancellationToken.IsCancellationRequested) yield break;
+				await using var entryStream = archive.GetInputStream(entry);
+				using var streamReader = new StreamReader(entryStream);
+
+				if (cancellationToken.IsCancellationRequested) yield break;
+				var fileBlob = new BinaryData(await streamReader.ReadToEndAsync());
+				var contentType = MimeTypeMap.GetMimeType(Path.GetExtension(entry.Name));
+
+				if (cancellationToken.IsCancellationRequested) yield break;
+				yield return (fileBlob, contentType);
+			}
 		}
 	}
 }

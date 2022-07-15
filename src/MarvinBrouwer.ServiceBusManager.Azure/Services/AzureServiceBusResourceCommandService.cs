@@ -1,9 +1,10 @@
-using System.Runtime.Serialization;
 using Azure.Messaging.ServiceBus;
+
+using MarvinBrouwer.ServiceBusManager.Azure.Extensions;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
-using Newtonsoft.Json.Linq;
+using Microsoft.Azure.Management.ServiceBus.Fluent.Models;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
@@ -12,11 +13,13 @@ public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusReso
 	public Task QueueMessages(IAzureResource<IResource> selectedResource, IReadOnlyList<(BinaryData blob, string contentType)> messages,  CancellationToken cancellationToken)
 	{
 		if (selectedResource is QueueDeadLetter queueDeadLetter)
-			return QueueMessagesToQueue(queueDeadLetter.Queue.InnerResource, ConvertMessages(messages), cancellationToken);
+			return QueueMessagesToQueue(queueDeadLetter.ServiceBus, queueDeadLetter.Queue.InnerResource, ConvertMessages(messages), cancellationToken);
+		if (selectedResource is Topic topic)
+			return QueueMessagesToTopic(topic.ServiceBus, topic.InnerResource, ConvertMessages(messages), cancellationToken);
 		if (selectedResource is TopicSubscription topicSubscription)
-			return QueueMessagesToTopic(topicSubscription.Topic, ConvertMessages(messages), cancellationToken);
+			return QueueMessagesToTopic(topicSubscription.ServiceBus, topicSubscription.Topic, ConvertMessages(messages), cancellationToken);
 		if (selectedResource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
-			return QueueMessagesToTopic(topicSubscriptionDeadLetter.Topic, ConvertMessages(messages), cancellationToken);
+			return QueueMessagesToTopic(topicSubscriptionDeadLetter.ServiceBus, topicSubscriptionDeadLetter.Topic, ConvertMessages(messages), cancellationToken);
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
@@ -24,11 +27,13 @@ public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusReso
 	public Task QueueMessages(IAzureResource<IResource> selectedResource, IReadOnlyList<ServiceBusReceivedMessage> messages, CancellationToken cancellationToken)
 	{
 		if (selectedResource is QueueDeadLetter queueDeadLetter)
-			return QueueMessagesToQueue(queueDeadLetter.Queue.InnerResource, ConvertMessages(messages), cancellationToken);
+			return QueueMessagesToQueue(queueDeadLetter.ServiceBus, queueDeadLetter.Queue.InnerResource, ConvertMessages(messages), cancellationToken);
+		if (selectedResource is Topic topic)
+			return QueueMessagesToTopic(topic.ServiceBus, topic.InnerResource, ConvertMessages(messages), cancellationToken);
 		if (selectedResource is TopicSubscription topicSubscription)
-			return QueueMessagesToTopic(topicSubscription.Topic, ConvertMessages(messages), cancellationToken);
+			return QueueMessagesToTopic(topicSubscription.ServiceBus, topicSubscription.Topic, ConvertMessages(messages), cancellationToken);
 		if (selectedResource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
-			return QueueMessagesToTopic(topicSubscriptionDeadLetter.Topic, ConvertMessages(messages), cancellationToken);
+			return QueueMessagesToTopic(topicSubscriptionDeadLetter.ServiceBus, topicSubscriptionDeadLetter.Topic, ConvertMessages(messages), cancellationToken);
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
@@ -47,15 +52,32 @@ public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusReso
 			.ToList();
 	}
 
-	private Task QueueMessagesToQueue(IQueue queue, IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
+	private async Task QueueMessagesToQueue(IServiceBusNamespace serviceBusNamespace, IQueue queue,
+		IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
 	{
-		// TODO
-		throw new NotImplementedException();
+		var client = await serviceBusNamespace.CreateServiceBusClient(AccessRights.Send, cancellationToken);
+		await PushMessage(queue.Name, messages, cancellationToken, client);
 	}
 
-	private Task QueueMessagesToTopic(ITopic topic, IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
+	private async Task QueueMessagesToTopic(IServiceBusNamespace serviceBusNamespace, ITopic topic,
+		IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
 	{
-		// TODO
-		throw new NotImplementedException();
+		var client = await serviceBusNamespace.CreateServiceBusClient(AccessRights.Send, cancellationToken);
+		await PushMessage(topic.Name, messages, cancellationToken, client);
+	}
+
+	private static async Task PushMessage(string resourcePath, IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken,
+		ServiceBusClient client)
+	{
+		var sender = client.CreateSender(resourcePath);
+
+		try
+		{
+			await sender.SendMessagesAsync(messages, cancellationToken);
+		}
+		finally
+		{
+			if (!sender.IsClosed) await sender.CloseAsync(cancellationToken);
+		}
 	}
 }

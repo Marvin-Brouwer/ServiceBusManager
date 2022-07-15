@@ -1,7 +1,5 @@
 using Azure.Core;
 using Azure.Identity;
-using Microsoft.Azure;
-using Microsoft.Rest;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 

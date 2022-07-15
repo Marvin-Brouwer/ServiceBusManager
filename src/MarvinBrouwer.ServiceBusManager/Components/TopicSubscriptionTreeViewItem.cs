@@ -1,15 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
 using MarvinBrouwer.ServiceBusManager.Azure;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
-using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 
 namespace MarvinBrouwer.ServiceBusManager.Components;

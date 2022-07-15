@@ -1,12 +1,6 @@
 using System.Runtime.CompilerServices;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
-using Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
-using Microsoft.Azure.ServiceBus.Management;
-using Microsoft.Azure.Services.AppAuthentication;
 using ISubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -28,12 +22,12 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 		var resourceGroups = await azure.ResourceGroups
 			.ListAsync(true, cancellationToken);
 		
-		foreach (var resourceGroup in resourceGroups)
+		foreach (var resourceGroup in resourceGroups.OrderBy(r => r.Name))
 		{
 			var serviceBusNameSpaces = await azure.ServiceBusNamespaces
 				.ListByResourceGroupAsync(resourceGroup.Name, true, cancellationToken);
 
-			foreach (var serviceBusNamespace in serviceBusNameSpaces)
+			foreach (var serviceBusNamespace in serviceBusNameSpaces.OrderBy(s => s.Name))
 			{
 				yield return new ServiceBus(serviceBusNamespace);
 			}
@@ -59,7 +53,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 		var queues = await serviceBusNamespace.Queues
 			.ListAsync(true, cancellationToken);
 
-		foreach (IQueue queue in queues)
+		foreach (var queue in queues.OrderBy(q => q.Name))
 		{
 			yield return new Queue(serviceBusNamespace, queue);
 		}
@@ -70,7 +64,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 		var topics = await serviceBusNamespace.Topics
 			.ListAsync(true, cancellationToken);
 
-		foreach (var topic in topics)
+		foreach (var topic in topics.OrderBy(t => t.Name))
 		{
 			yield return new Topic(serviceBusNamespace, topic)
 			{
@@ -84,7 +78,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 		var subscriptions = await topic.Subscriptions
 			.ListAsync(true, cancellationToken);
 
-		foreach (var topicSubscription in subscriptions)
+		foreach (var topicSubscription in subscriptions.OrderBy(s => s.Name))
 		{
 			yield return new TopicSubscription(serviceBusNamespace, topic, topicSubscription);
 		}

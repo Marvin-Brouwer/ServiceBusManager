@@ -1,7 +1,7 @@
 using System;
-using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,7 +46,10 @@ public partial class App : Application
 				MessageBoxButton.OK, MessageBoxImage.Error);
 
 			// TODO figure out why this doesn't work
-			Process.Start(Process.GetCurrentProcess().StartInfo);
+			Task.Factory.StartNew(
+				(_) => Process.Start(Process.GetCurrentProcess().StartInfo),
+				CancellationToken.None,
+				TaskCreationOptions.RunContinuationsAsynchronously);
 		}
 
 		SignalCancel();
