@@ -1,15 +1,21 @@
 using MarvinBrouwer.ServiceBusManager.Azure;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using MarvinBrouwer.ServiceBusManager.Components;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 
 public partial class Dialog
 {
+	private static bool IsResourceWithSubscription(BaseTreeViewItem item) => item
+		is TopicTreeViewItem
+		or TopicSubscriptionTreeViewItem
+		or TopicSubscriptionDeadLetterTreeViewItem;
+
 	internal static (bool requeue, bool storeDownload) ConfirmRequeue(BaseTreeViewItem item, int itemCount, bool maxItemsReached)
 	{
 		var resourceName = FormatTitle(item);
 		var dialog = new Dialog($"Requeue items from `{resourceName}`?", "Store locally before requeue?",
-			new RequeueDialog(item is TopicSubscriptionDeadLetterTreeViewItem, itemCount, maxItemsReached));
+			new RequeueDialog(IsResourceWithSubscription(item), itemCount, maxItemsReached));
 
 		var requeue = dialog.ShowDialog() ?? false;
 		return (requeue, dialog.DialogBar.StoreBeforeAction);
@@ -19,7 +25,7 @@ public partial class Dialog
 	{
 		var resourceName = FormatTitle(item);
 		var dialog = new Dialog($"Upload `{fileName}` to `{resourceName}`?",
-			new UploadDialog(item is TopicTreeViewItem, itemCount));
+			new UploadDialog(IsResourceWithSubscription(item), itemCount));
 
 		return dialog.ShowDialog() ?? false;
 	}

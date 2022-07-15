@@ -1,16 +1,16 @@
-using System;
+using MarvinBrouwer.ServiceBusManager.Azure.Services;
+using MarvinBrouwer.ServiceBusManager.Components;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using MarvinBrouwer.ServiceBusManager.Azure.Services;
-using MarvinBrouwer.ServiceBusManager.Components;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
 
-public sealed class AzureLandscapeRenderingService
+public sealed class AzureLandscapeRenderingService : IAzureLandscapeRenderingService
 {
 	private readonly TreeView _azureLandscape;
 	private readonly IAzureSubscriptionService _subscriptionService;
@@ -27,7 +27,7 @@ public sealed class AzureLandscapeRenderingService
 	}
 
 	public async IAsyncEnumerable<SubscriptionTreeViewItem> LoadSubscriptions(
-		Action? doneCallBack, [EnumeratorCancellation] CancellationToken cancellationToken)
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var subscriptions = await _subscriptionService
 			.ListSubscriptions(cancellationToken)
@@ -40,21 +40,19 @@ public sealed class AzureLandscapeRenderingService
 			hasCleared = true;
 
 			var subscriptionTreeViewItem = new SubscriptionTreeViewItem(subscription);
-
-			subscriptionTreeViewItem.Loaded += async (_,_) =>
-			{
-				var isLast = subscriptionTreeViewItem.Subscription == subscriptions.Last() ;
-					
-				await LoadSubscriptionContents(subscriptionTreeViewItem, isLast ? doneCallBack : null, cancellationToken);
-			};
-
+			
 			yield return subscriptionTreeViewItem;
 			_azureLandscape.Items.Add(subscriptionTreeViewItem);
+		}
+
+		foreach (SubscriptionTreeViewItem subscriptionTreeViewItem in _azureLandscape.Items)
+		{
+			await LoadSubscriptionContents(subscriptionTreeViewItem, cancellationToken);
 		}
 	}
 
 	public async Task LoadSubscriptionContents(
-		SubscriptionTreeViewItem subscriptionTreeViewItem, Action? doneCallBack, CancellationToken cancellationToken)
+		SubscriptionTreeViewItem subscriptionTreeViewItem, CancellationToken cancellationToken)
 	{
 		subscriptionTreeViewItem.IsEnabled = false;
 		subscriptionTreeViewItem.IsExpanded = false;
@@ -74,16 +72,15 @@ public sealed class AzureLandscapeRenderingService
 
 			var serviceBusTreeViewItem = new ServiceBusTreeViewItem(serviceBus);
 			subscriptionTreeViewItem.Items.Add(serviceBusTreeViewItem);
-
-			var isLast = serviceBusTreeViewItem.ServiceBus == serviceBuses.Last();
-			await LoadServiceBusResources(serviceBusTreeViewItem, isLast ? doneCallBack : null, cancellationToken);
+			
+			await LoadServiceBusResources(serviceBusTreeViewItem, cancellationToken);
 		}
-
+		
 		subscriptionTreeViewItem.IsEnabled = true;
 	}
 
-	public async Task LoadServiceBusResources(ServiceBusTreeViewItem serviceBusTreeViewItem,
-		Action? doneCallBack, CancellationToken cancellationToken)
+	public async Task LoadServiceBusResources(
+		ServiceBusTreeViewItem serviceBusTreeViewItem, CancellationToken cancellationToken)
 	{
 		serviceBusTreeViewItem.IsEnabled = false;
 		serviceBusTreeViewItem.IsExpanded = false;
@@ -113,7 +110,6 @@ public sealed class AzureLandscapeRenderingService
 		if (!topicList.Any())
 		{
 			serviceBusTreeViewItem.IsEnabled = true;
-			doneCallBack?.Invoke();
 			return;
 		}
 
@@ -128,16 +124,15 @@ public sealed class AzureLandscapeRenderingService
 
 			var topicTreeViewItem = new TopicTreeViewItem(topic);
 			serviceBusTreeViewItem.Items.Add(topicTreeViewItem);
-
-			var isLast = topicTreeViewItem.Topic == topicList.Last();
-			await LoadTopicSubscriptions(topicTreeViewItem, isLast ?  doneCallBack : null, cancellationToken);
+			
+			await LoadTopicSubscriptions(topicTreeViewItem, cancellationToken);
 		}
-
+		
 		serviceBusTreeViewItem.IsEnabled = true;
 	}
 
 	public async Task LoadTopicSubscriptions(
-		TopicTreeViewItem topicTreeViewItem, Action? doneCallBack, CancellationToken cancellationToken)
+		TopicTreeViewItem topicTreeViewItem, CancellationToken cancellationToken)
 	{
 		topicTreeViewItem.IsEnabled = false;
 		topicTreeViewItem.IsExpanded = false;
@@ -159,6 +154,5 @@ public sealed class AzureLandscapeRenderingService
 		}
 
 		topicTreeViewItem.IsEnabled = true;
-		doneCallBack?.Invoke();
 	}
 }

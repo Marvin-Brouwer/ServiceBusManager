@@ -1,4 +1,5 @@
 using MarvinBrouwer.ServiceBusManager.Azure.Services;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure;

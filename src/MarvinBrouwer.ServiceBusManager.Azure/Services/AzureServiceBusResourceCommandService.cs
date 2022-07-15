@@ -2,6 +2,7 @@ using Azure.Messaging.ServiceBus;
 
 using MarvinBrouwer.ServiceBusManager.Azure.Extensions;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
+
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 using Microsoft.Azure.Management.ServiceBus.Fluent.Models;
@@ -38,36 +39,36 @@ public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusReso
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
 
-	private IReadOnlyList<ServiceBusMessage> ConvertMessages(IReadOnlyList<ServiceBusReceivedMessage> messages)
+	private static IReadOnlyList<ServiceBusMessage> ConvertMessages(IReadOnlyList<ServiceBusReceivedMessage> messages)
 	{
 		return messages
 			.Select(message => new ServiceBusMessage(message))
 			.ToList();
 	}
 
-	private IReadOnlyList<ServiceBusMessage> ConvertMessages(IReadOnlyList<(BinaryData blob, string contentType)> messages)
+	private static IReadOnlyList<ServiceBusMessage> ConvertMessages(IReadOnlyList<(BinaryData blob, string contentType)> messages)
 	{
 		return messages
 			.Select(message => new ServiceBusMessage(message.blob){ ContentType = message.contentType })
 			.ToList();
 	}
 
-	private async Task QueueMessagesToQueue(IServiceBusNamespace serviceBusNamespace, IQueue queue,
+	private static async Task QueueMessagesToQueue(IServiceBusNamespace serviceBusNamespace, IQueue queue,
 		IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
 	{
 		var client = await serviceBusNamespace.CreateServiceBusClient(AccessRights.Send, cancellationToken);
-		await PushMessage(queue.Name, messages, cancellationToken, client);
+		await PushMessage(queue.Name, messages, client, cancellationToken);
 	}
 
-	private async Task QueueMessagesToTopic(IServiceBusNamespace serviceBusNamespace, ITopic topic,
+	private static async Task QueueMessagesToTopic(IServiceBusNamespace serviceBusNamespace, ITopic topic,
 		IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken)
 	{
 		var client = await serviceBusNamespace.CreateServiceBusClient(AccessRights.Send, cancellationToken);
-		await PushMessage(topic.Name, messages, cancellationToken, client);
+		await PushMessage(topic.Name, messages, client, cancellationToken);
 	}
 
-	private static async Task PushMessage(string resourcePath, IReadOnlyList<ServiceBusMessage> messages, CancellationToken cancellationToken,
-		ServiceBusClient client)
+	private static async Task PushMessage(string resourcePath, IReadOnlyList<ServiceBusMessage> messages,
+		ServiceBusClient client, CancellationToken cancellationToken)
 	{
 		var sender = client.CreateSender(resourcePath);
 

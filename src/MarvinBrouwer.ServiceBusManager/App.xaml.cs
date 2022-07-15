@@ -1,10 +1,13 @@
+using MarvinBrouwer.ServiceBusManager.Windows;
+
+using Microsoft.Extensions.DependencyInjection;
+
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MarvinBrouwer.ServiceBusManager;
 
@@ -45,11 +48,22 @@ public partial class App : Application
 				@$"Unhandled exception: {exception.GetType().FullName}",
 				MessageBoxButton.OK, MessageBoxImage.Error);
 
-			// TODO figure out why this doesn't work
+			var currentProcess = Process.GetCurrentProcess();
+			var restartProcessInfo = new ProcessStartInfo
+			{
+				FileName = currentProcess.MainModule!.FileName,
+				WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
+			};
+			
 			Task.Factory.StartNew(
-				(_) => Process.Start(Process.GetCurrentProcess().StartInfo),
+				(_) =>
+				{
+					Process.Start(restartProcessInfo);
+					Shutdown();
+				},
 				CancellationToken.None,
 				TaskCreationOptions.RunContinuationsAsynchronously);
+
 		}
 
 		SignalCancel();

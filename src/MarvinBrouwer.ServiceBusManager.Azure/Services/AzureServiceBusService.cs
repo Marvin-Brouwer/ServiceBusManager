@@ -1,6 +1,9 @@
-using System.Runtime.CompilerServices;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
+
 using Microsoft.Azure.Management.ServiceBus.Fluent;
+
+using System.Runtime.CompilerServices;
+
 using ISubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -16,7 +19,8 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 
 	public async IAsyncEnumerable<ServiceBus> ListServiceBuses(ISubscription subscription, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var credentials = await _authenticationService.Authenticate(cancellationToken);
+		
+		var credentials = await _authenticationService.Authenticate(subscription, cancellationToken);
 		var azure = credentials.WithSubscription(subscription.SubscriptionId);
 
 		var resourceGroups = await azure.ResourceGroups
@@ -43,7 +47,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 		return (queues, topics);
 	}
 
-	public IAsyncEnumerable<TopicSubscription> ListTopicSubscriptions(Topic topic, [EnumeratorCancellation] CancellationToken cancellationToken)
+	public IAsyncEnumerable<TopicSubscription> ListTopicSubscriptions(Topic topic, CancellationToken cancellationToken)
 	{
 		return GetSubscriptions(topic.ServiceBus, topic.InnerResource, cancellationToken);
 	}

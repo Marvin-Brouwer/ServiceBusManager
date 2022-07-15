@@ -1,8 +1,11 @@
 using Azure.Messaging.ServiceBus;
+
 using MarvinBrouwer.ServiceBusManager.Azure.Extensions;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
+
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
+
 using AccessRights = Microsoft.Azure.Management.ServiceBus.Fluent.Models.AccessRights;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -68,7 +71,7 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 	}
 
 
-	private ServiceBusReceiver CreateQueueReceiver(
+	private static ServiceBusReceiver CreateQueueReceiver(
 		ServiceBusClient client,
 		string path,
 		ServiceBusReceiveMode receiveMode)
@@ -79,7 +82,7 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 		});
 	}
 
-	private ServiceBusReceiver CreateTopicReceiver(
+	private static ServiceBusReceiver CreateTopicReceiver(
 		ServiceBusClient client,
 		string topicPath,
 		string topicSubscriptionPath,

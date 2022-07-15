@@ -1,6 +1,7 @@
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+
 using System;
 using System.Windows;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
@@ -9,6 +10,7 @@ public sealed class SubscriptionTreeViewItem : BaseTreeViewItem
 	public SubscriptionTreeViewItem(ISubscription subscription)
 	{
 		DisplayName = subscription.DisplayName;
+		Label = $"tenant: {subscription.Inner.TenantId}";
 		Identifier = $"ID{new Guid(subscription.SubscriptionId):N}";
 		SetHeaderValue();
 

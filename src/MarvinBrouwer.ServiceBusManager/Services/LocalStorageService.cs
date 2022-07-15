@@ -1,3 +1,14 @@
+using Azure.Messaging.ServiceBus;
+
+using ICSharpCode.SharpZipLib.Zip;
+
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
+
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
+
+using MimeTypes;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,17 +18,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Messaging.ServiceBus;
-using MarvinBrouwer.ServiceBusManager.Azure.Models;
-
-using ICSharpCode.SharpZipLib.Zip;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.ServiceBus.Fluent;
-using MimeTypes;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
 
-public sealed class LocalStorageService
+public sealed class LocalStorageService : ILocalStorageService
 {
 	private const string TimeStampFormat = "yyyy-MM-dd HHmmss";
 	private const string DownloadFolderName = "Downloads";
@@ -141,7 +145,7 @@ public sealed class LocalStorageService
 		filePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) ||
 		filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
 
-	public async IAsyncEnumerable<(BinaryData fileBlob, string contentType)> ReadFileData(string[] fileNames, CancellationToken cancellationToken)
+	public async IAsyncEnumerable<(BinaryData fileBlob, string contentType)> ReadFileData(string[] fileNames, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var rawFilePaths = fileNames.Where(IsDataFilePath);
 		var rawFiles = ReadFileData(rawFilePaths, cancellationToken);

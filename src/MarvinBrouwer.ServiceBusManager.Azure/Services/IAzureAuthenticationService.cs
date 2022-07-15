@@ -1,13 +1,14 @@
-using Azure.Core;
-using Azure.Identity;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
 public interface IAzureAuthenticationService
 {
-	DefaultAzureCredential AzureCredentials { get; }
-
-	Task <AccessToken> GetAccessToken(CancellationToken cancellationToken);
-	Task<Microsoft.Azure.Management.Fluent.Azure.IAuthenticated> Authenticate(
+	Task<Microsoft.Azure.Management.Fluent.Azure.IAuthenticated> AuthenticateDefaultTenant(
 		CancellationToken cancellationToken);
+
+	Task<Microsoft.Azure.Management.Fluent.Azure.IAuthenticated> Authenticate(
+		ITenant tenant, CancellationToken cancellationToken);
+	Task<Microsoft.Azure.Management.Fluent.Azure.IAuthenticated> Authenticate(
+		ISubscription subscription, CancellationToken cancellationToken);
 }

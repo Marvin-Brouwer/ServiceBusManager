@@ -1,3 +1,14 @@
+using Azure.Messaging.ServiceBus;
+
+using MarvinBrouwer.ServiceBusManager.Azure;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using MarvinBrouwer.ServiceBusManager.Azure.Services;
+using MarvinBrouwer.ServiceBusManager.Components;
+using MarvinBrouwer.ServiceBusManager.Dialogs;
+using MarvinBrouwer.ServiceBusManager.Services;
+
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,19 +20,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
-using Azure.Messaging.ServiceBus;
-using MarvinBrouwer.ServiceBusManager.Azure;
-using MarvinBrouwer.ServiceBusManager.Azure.Models;
-using MarvinBrouwer.ServiceBusManager.Azure.Services;
-using MarvinBrouwer.ServiceBusManager.Components;
-using MarvinBrouwer.ServiceBusManager.Dialogs;
-using MarvinBrouwer.ServiceBusManager.Services;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
 using TreeView = System.Windows.Controls.TreeView;
 
-namespace MarvinBrouwer.ServiceBusManager;
+namespace MarvinBrouwer.ServiceBusManager.Windows;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -31,16 +35,16 @@ public partial class MainWindow : Window
 	private readonly IAzureServiceBusResourceCommandService _resourceCommandService;
 	private readonly IAzureServiceBusResourceQueryService _resourceQueryService;
 	private readonly IAzureAuthenticationService _azureAuthenticationService;
-	private readonly AzureLandscapeRenderingService _azureLandscapeRenderingService;
-	private readonly LocalStorageService _localStorageService;
+	private readonly IAzureLandscapeRenderingService _azureLandscapeRenderingService;
+	private readonly ILocalStorageService _localStorageService;
 	private bool _windowLoading;
 
-	private CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
+	private static CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
 
 	public MainWindow(
 		IAzureAuthenticationService azureAuthenticationService,
-		Func<TreeView, AzureLandscapeRenderingService> azureLandscapeRenderingService,
-		LocalStorageService localStorageService,
+		Func<TreeView, IAzureLandscapeRenderingService> azureLandscapeRenderingService,
+		ILocalStorageService localStorageService,
 		IAzureServiceBusResourceQueryService resourceQueryService,
 		IAzureServiceBusResourceCommandService resourceCommandService)
 	{
@@ -86,7 +90,7 @@ public partial class MainWindow : Window
 
 	private async void WindowLoaded()
 	{
-		await _azureAuthenticationService.Authenticate(CancellationToken);
+		await _azureAuthenticationService.AuthenticateDefaultTenant(CancellationToken);
 		_localStorageService.PrepareDownloadFolder();
 		Cursor = Cursors.Arrow;
 		await LoadFullAzureLandscape();
@@ -101,8 +105,8 @@ public partial class MainWindow : Window
 
 	private async Task LoadFullAzureLandscape()
 	{
+		if (AzureLandscape.SelectedItem is BaseTreeViewItem item) item.IsSelected = false;
 		AzureLandscape.IsEnabled = false;
-		SelectedItemChanged(null);
 		foreach (SubscriptionTreeViewItem treeViewItem in AzureLandscape.Items)
 		{
 			treeViewItem.IsEnabled = false;
@@ -113,13 +117,12 @@ public partial class MainWindow : Window
 		AzureLandscape.IsEnabled = true;
 
 		var subscriptionTreeViewItems = _azureLandscapeRenderingService
-			.LoadSubscriptions(() =>
-			{
-				WindowLoading = false;
-				AppendStatusMessage(@"Done!");
-			}, CancellationToken);
+			.LoadSubscriptions(CancellationToken);
 
 		await subscriptionTreeViewItems.ToListAsync(CancellationToken);
+		
+		WindowLoading = false;
+		AppendStatusMessage(@"Done!");
 	}
 
 	private bool WindowLoading
@@ -141,27 +144,26 @@ public partial class MainWindow : Window
 		ClearStatusPanel();
 		AppendStatusMessage(@"Reloading item data...");
 		WindowLoading = true;
-
-		void DoneCallBack()
-		{
-			WindowLoading = false;
-			AppendStatusMessage(@"Done!");
-		}
+		ValidateButtonState();
 
 		if (AzureLandscape.SelectedItem is SubscriptionTreeViewItem subscriptionTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadSubscriptionContents(subscriptionTreeViewItem, DoneCallBack, CancellationToken);
+			await _azureLandscapeRenderingService.LoadSubscriptionContents(subscriptionTreeViewItem, CancellationToken);
 		}
 
 		if (AzureLandscape.SelectedItem is ServiceBusTreeViewItem serviceBusTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadServiceBusResources(serviceBusTreeViewItem, DoneCallBack, CancellationToken);
+			await _azureLandscapeRenderingService.LoadServiceBusResources(serviceBusTreeViewItem, CancellationToken);
 		}
 
 		if (AzureLandscape.SelectedItem is TopicTreeViewItem topicTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadTopicSubscriptions(topicTreeViewItem, DoneCallBack, CancellationToken);
+			await _azureLandscapeRenderingService.LoadTopicSubscriptions(topicTreeViewItem, CancellationToken);
 		}
+
+		WindowLoading = false;
+		AppendStatusMessage(@"Done!");
+		ValidateButtonState();
 	}
 
 	private void OpenDownloadFolder(object sender, RoutedEventArgs e)
@@ -186,7 +188,7 @@ public partial class MainWindow : Window
 			// This is probably not efficient but we couldn't find a better way.
 			ReadmeRenderer.Source = new Uri("pack://application:,,,./Readme.md");
 
-			var resource = App.GetResourceStream(ReadmeRenderer.Source);
+			var resource = Application.GetResourceStream(ReadmeRenderer.Source);
 			using var reader = new StreamReader(resource!.Stream);
 
 			ReadmeRenderer.Markdown = reader.ReadToEnd(); ;
@@ -210,7 +212,10 @@ public partial class MainWindow : Window
 	private async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllResourceMessages(
 		ResourceTreeViewItem treeViewItem, ServiceBusReceiveMode receiveMode)
 	{
-		AppendStatusMessage($"Downloading message data ({receiveMode})");
+		AppendStatusMessage(
+			receiveMode == ServiceBusReceiveMode.PeekLock
+			? "Peeking message data"
+			: "Reading message data (destructive)");
 
 		var messages = await _resourceQueryService
 			.ReadAllMessages(treeViewItem.Resource, receiveMode, CancellationToken);
@@ -232,6 +237,8 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanRequeue) return;
 
+		WindowLoading = true;
+		ValidateButtonState();
 		ClearStatusPanel();
 		AppendStatusMessage("Getting item count to requeue");
 		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
@@ -241,6 +248,8 @@ public partial class MainWindow : Window
 		if (!requeue)
 		{
 			AppendStatusMessage("Canceled");
+			WindowLoading = false;
+			ValidateButtonState();
 			return;
 		}
 
@@ -251,6 +260,8 @@ public partial class MainWindow : Window
 		
 		await _resourceCommandService.QueueMessages(treeViewItem.Resource, serviceBusMessages, CancellationToken);
 		AppendStatusMessage($"Requeued {itemCount} items");
+		WindowLoading = false;
+		ValidateButtonState();
 	}
 
 	private async void ShowDownloadDialog(object sender, RoutedEventArgs e)
@@ -258,6 +269,8 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanDownload) return;
 
+		WindowLoading = true;
+		ValidateButtonState();
 		ClearStatusPanel();
 		AppendStatusMessage("Getting item count to download");
 		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
@@ -267,6 +280,8 @@ public partial class MainWindow : Window
 		if (!download)
 		{
 			AppendStatusMessage("Canceled");
+			WindowLoading = false;
+			ValidateButtonState();
 			return;
 		}
 
@@ -276,6 +291,8 @@ public partial class MainWindow : Window
 		await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
 		AppendStatusMessage("Done!");
+		WindowLoading = false;
+		ValidateButtonState();
 	}
 
 	private async void ShowUploadDialog(object sender, RoutedEventArgs e)
@@ -283,6 +300,8 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanUpload) return;
 
+		WindowLoading = true;
+		ValidateButtonState();
 		ClearStatusPanel();
 		AppendStatusMessage("Selecting file(s) to upload");
 
@@ -301,6 +320,8 @@ public partial class MainWindow : Window
 		 || openFileDialog.SafeFileNames.Length == 0)
 		{
 			AppendStatusMessage("No file selected");
+			WindowLoading = false;
+			ValidateButtonState();
 			return;
 		}
 
@@ -320,12 +341,16 @@ public partial class MainWindow : Window
 		if (!upload)
 		{
 			AppendStatusMessage("Canceled");
+			WindowLoading = false;
+			ValidateButtonState();
 			return;
 		}
 
 		await _resourceCommandService
 			.QueueMessages(treeViewItem.Resource, dataToPush, CancellationToken);
 		AppendStatusMessage($"Uploaded {dataToPush.Count} items");
+		WindowLoading = false;
+		ValidateButtonState();
 	}
 
 	private async void ShowClearDialog(object sender, RoutedEventArgs e)
@@ -333,6 +358,8 @@ public partial class MainWindow : Window
 		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanClear) return;
 
+		WindowLoading = true;
+		ValidateButtonState();
 		ClearStatusPanel();
 		AppendStatusMessage("Getting item count to clear");
 		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
@@ -342,6 +369,8 @@ public partial class MainWindow : Window
 		if (!clear)
 		{
 			AppendStatusMessage("Canceled");
+			WindowLoading = false;
+			ValidateButtonState();
 			return;
 		}
 
@@ -351,6 +380,8 @@ public partial class MainWindow : Window
 		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
 		AppendStatusMessage($"Cleared {itemCount} items");
+		WindowLoading = false;
+		ValidateButtonState();
 	}
 
 	private void SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

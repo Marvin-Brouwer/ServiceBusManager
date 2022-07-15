@@ -5,7 +5,6 @@ using System.Windows.Media.Imaging;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-
 public abstract class BaseTreeViewItem : TreeViewItem
 {
 	public string DisplayName { get; init; } = string.Empty;
@@ -73,9 +72,10 @@ public abstract class BaseTreeViewItem : TreeViewItem
 		if (string.IsNullOrWhiteSpace(Label)) return null;
 		return new TextBlock
 		{
-			Text = " | " + Label,
+			Text = " " + Label,
 			HorizontalAlignment = HorizontalAlignment.Right,
 			FontStyle = FontStyles.Italic,
+			FontWeight = FontWeights.Normal,
 			Foreground = SystemColors.ActiveBorderBrush,
 			Padding = new Thickness(0)
 		};

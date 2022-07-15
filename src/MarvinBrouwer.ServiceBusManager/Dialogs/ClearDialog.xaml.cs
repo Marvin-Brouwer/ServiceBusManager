@@ -1,6 +1,7 @@
+using MarvinBrouwer.ServiceBusManager.Azure;
+
 using System.Windows;
 using System.Windows.Controls;
-using MarvinBrouwer.ServiceBusManager.Azure;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// <summary>
