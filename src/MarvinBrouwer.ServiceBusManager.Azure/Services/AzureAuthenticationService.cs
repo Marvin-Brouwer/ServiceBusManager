@@ -11,6 +11,7 @@ using IAuthenticated = Microsoft.Azure.Management.Fluent.Azure.IAuthenticated;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
+/// <inheritdoc />
 public sealed class AzureAuthenticationService : IAzureAuthenticationService
 {
 	private static DefaultAzureCredential InitialAzureCredentials => new(new DefaultAzureCredentialOptions
@@ -64,6 +65,7 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 				}), cancellationToken);
 	}
 
+	/// <inheritdoc />
 	public async Task<IAuthenticated> AuthenticateDefaultTenant(CancellationToken cancellationToken)
 	{
 		var defaultCloudToken = await GetAccessToken(cancellationToken);
@@ -87,9 +89,11 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 			.Authenticate(azureCredentials);
 	}
 
+	/// <inheritdoc />
 	public Task<IAuthenticated> Authenticate(ITenant tenant, CancellationToken cancellationToken) =>
 		Authenticate(tenant.TenantId, cancellationToken);
 
+	/// <inheritdoc />
 	public Task<IAuthenticated> Authenticate(ISubscription subscription, CancellationToken cancellationToken) =>
 		Authenticate(subscription.Inner.TenantId, cancellationToken);
 

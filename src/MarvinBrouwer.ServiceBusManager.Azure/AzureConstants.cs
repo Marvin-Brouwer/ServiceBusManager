@@ -1,5 +1,8 @@
 namespace MarvinBrouwer.ServiceBusManager.Azure;
 
+/// <summary>
+/// Constant values used for working with Azure Service Buses
+/// </summary>
 public static class AzureConstants
 {
 	/// <summary>
@@ -9,9 +12,7 @@ public static class AzureConstants
 	public const int ServiceBusResourceMaxItemCount = 100;
 
 	/// <summary>
-	/// Naming segment for dead letter items
+	/// The path segment Azure adds to any dead-letter queue/topicSubscription
 	/// </summary>
-	public const string DeadLetterPathSegment = "dead-letter";
-
 	public const string DeadLetterSubQueueSegment = "$DeadLetterQueue";
 }

@@ -26,6 +26,9 @@ public partial class HelpPage : Page
 		InitializeComponent();
 	}
 
+	/// <summary>
+	/// Load and render a new <see cref="HelpPage"/> based on the `./Readme.md` of this `.csproj`
+	/// </summary>
 	public static async Task<Page> Load()
 	{
 		var page = new HelpPage();

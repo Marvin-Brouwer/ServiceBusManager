@@ -35,7 +35,7 @@ internal sealed class TopicSubscriptionDeadLetterTreeViewItem : ResourceTreeView
 {
 	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription)
 	{
-		DisplayName = AzureConstants.DeadLetterPathSegment;
+		DisplayName = ApplicationConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";
 
 		Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}_dl";

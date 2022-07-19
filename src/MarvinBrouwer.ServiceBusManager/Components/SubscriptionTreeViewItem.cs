@@ -5,7 +5,7 @@ using System.Windows;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-public sealed class SubscriptionTreeViewItem : BaseTreeViewItem
+internal sealed class SubscriptionTreeViewItem : BaseTreeViewItem
 {
 	public SubscriptionTreeViewItem(ISubscription subscription)
 	{

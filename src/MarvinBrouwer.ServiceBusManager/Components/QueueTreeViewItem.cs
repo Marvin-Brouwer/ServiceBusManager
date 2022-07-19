@@ -16,8 +16,6 @@ internal sealed class QueueTreeViewItem : ResourceTreeViewItem
 		Identifier = $"ID{new Guid(queue.InnerResource.Key):N}";
 		SetHeaderValue();
 		IsEnabled = true;
-
-		Queue = queue;
 		
 		Items.Add(new QueueDeadLetterTreeViewItem(queue));
 	}
@@ -27,15 +25,13 @@ internal sealed class QueueTreeViewItem : ResourceTreeViewItem
 	public override bool CanUpload => true;
 	public override bool CanDownload => true;
 	public override bool CanRequeue => false;
-
-	public Queue Queue { get; }
 }
 
 internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
 {
 	public QueueDeadLetterTreeViewItem(Queue queue) : base(queue)
 	{
-		DisplayName = AzureConstants.DeadLetterPathSegment;
+		DisplayName = ApplicationConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";
 
 		Identifier = $"ID{new Guid(queue.InnerResource.Key):N}_dl";
@@ -43,7 +39,6 @@ internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
 		SetHeaderValue();
 
 		Queue = queue;
-		DeadLetter = queue.DeadLetter;
 	}
 
 	public override bool CanReload => false;
@@ -53,5 +48,4 @@ internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
 	public override bool CanRequeue => true;
 
 	public Queue Queue { get; }
-	public QueueDeadLetter DeadLetter { get; }
 }

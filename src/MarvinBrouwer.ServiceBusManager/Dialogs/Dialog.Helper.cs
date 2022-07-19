@@ -54,11 +54,11 @@ public partial class Dialog
 		{
 			QueueDeadLetterTreeViewItem deadLetter =>
 				deadLetter.Queue.InnerResource.Name + "/" +
-				AzureConstants.DeadLetterPathSegment,
+				ApplicationConstants.DeadLetterPathSegment,
 			TopicSubscriptionDeadLetterTreeViewItem deadLetter =>
 				deadLetter.Topic.InnerResource.Name + "/" +
 				deadLetter.TopicSubscription.InnerResource.Name + "/" +
-				AzureConstants.DeadLetterPathSegment,
+				ApplicationConstants.DeadLetterPathSegment,
 			_ => item.DisplayName
 		};
 	}

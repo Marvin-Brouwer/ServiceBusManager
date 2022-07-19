@@ -8,15 +8,18 @@ using ISubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscri
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
+/// <inheritdoc />
 public sealed class AzureServiceBusService : IAzureServiceBusService
 {
 	private readonly IAzureAuthenticationService _authenticationService;
 
+	/// <inheritdoc cref="AzureServiceBusService" />
 	public AzureServiceBusService(IAzureAuthenticationService authenticationService)
 	{
 		_authenticationService = authenticationService;
 	}
 
+	/// <inheritdoc />
 	public async IAsyncEnumerable<ServiceBus> ListServiceBuses(ISubscription subscription, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		
@@ -39,6 +42,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 
 	}
 
+	/// <inheritdoc />
 	public (IAsyncEnumerable<Queue> queues, IAsyncEnumerable<Topic> topics) ListServiceBusResources(ServiceBus serviceBus, CancellationToken cancellationToken)
 	{
 		var queues = GetQueues(serviceBus.InnerResource, cancellationToken);
@@ -47,6 +51,7 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 		return (queues, topics);
 	}
 
+	/// <inheritdoc />
 	public IAsyncEnumerable<TopicSubscription> ListTopicSubscriptions(Topic topic, CancellationToken cancellationToken)
 	{
 		return GetSubscriptions(topic.ServiceBus, topic.InnerResource, cancellationToken);

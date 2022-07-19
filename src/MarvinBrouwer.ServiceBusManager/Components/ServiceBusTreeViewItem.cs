@@ -4,7 +4,7 @@ using System;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-public sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
+internal sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
 {
 	public ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus)
 	{
