@@ -12,8 +12,11 @@ public interface IAzureResource<out TResource>
 }
 
 
-public abstract record AzureResource<TResource>(IServiceBusNamespace ServiceBus, TResource InnerResource) : IAzureResource<TResource>
+public abstract class AzureResource<TResource> : IAzureResource<TResource>
 	where TResource : IResource
 {
+	public IServiceBusNamespace ServiceBus { get; protected init; }
+	public TResource InnerResource { get; protected init; }
+
 	public virtual string Path => InnerResource.Name;
 }

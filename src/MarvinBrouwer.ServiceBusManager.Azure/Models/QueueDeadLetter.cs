@@ -4,7 +4,16 @@ using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-public sealed record QueueDeadLetter(IServiceBusNamespace ServiceBus, Queue Queue) : AzureResource<IQueue>(ServiceBus, Queue.InnerResource)
+public sealed class QueueDeadLetter : AzureResource<IQueue>
 {
+	public QueueDeadLetter(IServiceBusNamespace serviceBus, Queue queue)
+	{
+		ServiceBus = serviceBus;
+		InnerResource = queue.InnerResource;
+
+		Queue = queue;
+	}
+
 	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(InnerResource.Name);
+	public Queue Queue { get; }
 }
