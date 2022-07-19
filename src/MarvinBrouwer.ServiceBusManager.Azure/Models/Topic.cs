@@ -2,8 +2,14 @@ using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-public sealed record Topic(IServiceBusNamespace ServiceBus, ITopic InnerResource) : AzureResource<ITopic>(ServiceBus, InnerResource)
+public sealed class Topic : AzureResource<ITopic>
 {
-	public IAsyncEnumerable<TopicSubscription> TopicSubscriptions { get; init; }
+	public Topic(IServiceBusNamespace serviceBus, ITopic topic)
+	{
+		ServiceBus = serviceBus;
+		InnerResource = topic;
+	}
 
+	public IAsyncEnumerable<TopicSubscription> TopicSubscriptions { get; init; }
+	
 }

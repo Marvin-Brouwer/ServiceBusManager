@@ -4,16 +4,18 @@ using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-public sealed record TopicSubscriptionDeadLetter(IServiceBusNamespace ServiceBus, TopicSubscription TopicSubscription) : AzureResource<ISubscription>(ServiceBus, TopicSubscription.InnerResource)
+public sealed class TopicSubscriptionDeadLetter : AzureResource<ISubscription>
 {
-	public TopicSubscriptionDeadLetter(IServiceBusNamespace ServiceBus, ITopic topic, TopicSubscription subscription) : this(ServiceBus, subscription)
+	public TopicSubscriptionDeadLetter(IServiceBusNamespace serviceBus, ITopic topic, TopicSubscription subscription)
 	{
+		ServiceBus = serviceBus;
+		InnerResource = subscription.InnerResource;
+
 		Topic = topic;
 	}
 
 	public ITopic Topic { get; }
 
 	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(InnerResource.Name);
+	
 }
-
-// TODO structs?

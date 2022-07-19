@@ -2,6 +2,11 @@ using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
-public sealed record ServiceBus(IServiceBusNamespace InnerResource) : AzureResource<IServiceBusNamespace>(InnerResource, InnerResource)
+public sealed class ServiceBus : AzureResource<IServiceBusNamespace>
 {
+	public ServiceBus(IServiceBusNamespace serviceBus)
+	{
+		ServiceBus = serviceBus;
+		InnerResource = serviceBus;
+	}
 }
