@@ -35,6 +35,15 @@ internal static class ServiceBusNameSpaceExtensions
 		return (await accessKeyRecord.GetKeysAsync(cancellationToken)).PrimaryConnectionString;
 	}
 
+	/// <summary>
+	/// Create a valid <see cref="ServiceBusClient"/> for this <paramref name="serviceBusNamespace"/>
+	/// using the <see cref="IServiceBusNamespace"/>'s Authorization rules to get a connectionString
+	/// which matches the <paramref name="minimalAccessRights"/> 
+	/// </summary>
+	/// <param name="serviceBusNamespace"></param>
+	/// <param name="minimalAccessRights"></param>
+	/// <param name="cancellationToken"></param>
+	/// <returns></returns>
 	public static async Task<ServiceBusClient> CreateServiceBusClient(
 		this IServiceBusNamespace serviceBusNamespace, AccessRights minimalAccessRights, CancellationToken cancellationToken)
 	{

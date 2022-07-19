@@ -5,15 +5,18 @@ using System.Runtime.CompilerServices;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
+/// <inheritdoc />
 public sealed class AzureSubscriptionService : IAzureSubscriptionService
 {
 	private readonly IAzureAuthenticationService _authenticationService;
 
+	/// <inheritdoc cref="AzureSubscriptionService" />
 	public AzureSubscriptionService(IAzureAuthenticationService authenticationService)
 	{
 		_authenticationService = authenticationService;
 	}
 
+	/// <inheritdoc />
 	public async IAsyncEnumerable<ISubscription> ListSubscriptions([EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var azureAuthentication = await _authenticationService

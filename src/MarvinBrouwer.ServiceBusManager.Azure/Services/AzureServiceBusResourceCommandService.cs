@@ -9,8 +9,10 @@ using Microsoft.Azure.Management.ServiceBus.Fluent.Models;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
+/// <inheritdoc />
 public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusResourceCommandService
 {
+	/// <inheritdoc />
 	public Task QueueMessages(IAzureResource<IResource> selectedResource, IReadOnlyList<(BinaryData blob, string contentType)> messages,  CancellationToken cancellationToken)
 	{
 		if (selectedResource is QueueDeadLetter queueDeadLetter)
@@ -25,6 +27,7 @@ public sealed class AzureServiceBusResourceCommandService : IAzureServiceBusReso
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
 
+	/// <inheritdoc />
 	public Task QueueMessages(IAzureResource<IResource> selectedResource, IReadOnlyList<ServiceBusReceivedMessage> messages, CancellationToken cancellationToken)
 	{
 		if (selectedResource is QueueDeadLetter queueDeadLetter)

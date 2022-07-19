@@ -10,8 +10,10 @@ using AccessRights = Microsoft.Azure.Management.ServiceBus.Fluent.Models.AccessR
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
-public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
+/// <inheritdoc />
+public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
 {
+	/// <inheritdoc />
 	public async Task<long> GetMessageCount(
 		IAzureResource<IResource> selectedResource, CancellationToken cancellationToken)
 	{
@@ -38,7 +40,8 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
-	
+
+	/// <inheritdoc />
 	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(
 		IAzureResource<IResource> selectedResource, ServiceBusReceiveMode receiveMode, CancellationToken cancellationToken)
 	{
@@ -69,8 +72,7 @@ public  sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResou
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);
 	}
-
-
+	
 	private static ServiceBusReceiver CreateQueueReceiver(
 		ServiceBusClient client,
 		string path,

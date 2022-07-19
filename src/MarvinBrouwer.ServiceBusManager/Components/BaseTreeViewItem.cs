@@ -5,24 +5,58 @@ using System.Windows.Media.Imaging;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-public abstract class BaseTreeViewItem : TreeViewItem
+/// <summary>
+/// Implementation of a <see cref="TreeViewItem"/> containing some properties for button state management
+/// and labeling access
+/// </summary>
+internal abstract class BaseTreeViewItem : TreeViewItem
 {
-	public string DisplayName { get; init; } = string.Empty;
+	/// <summary>
+	/// The plain text display name used in the tree view
+	/// </summary>
+	public string DisplayName { get; protected init; } = string.Empty;
 
+	/// <summary>
+	/// Indicating this item allows for reloading the selected item
+	/// </summary>
 	public abstract bool CanReload { get; }
+	/// <summary>
+	/// Indicating this item allows for clearing the selected item
+	/// </summary>
 	public abstract bool CanClear { get; }
+	/// <summary>
+	/// Indicating this item allows for uploading messages to the selected item
+	/// </summary>
 	public abstract bool CanUpload { get; }
+	/// <summary>
+	/// Indicating this item allows for downloading messages from the selected item
+	/// </summary>
 	public abstract bool CanDownload { get; }
+	/// <summary>
+	/// Indicating this item allows for requeueing items from selected item to a designated parent
+	/// </summary>
 	public abstract bool CanRequeue { get; }
-	public string? Label { get; protected init; }
-	public string? IconUrl { get; protected init; }
 
+	/// <summary>
+	/// An additional label to show in gray next to the tree item
+	/// </summary>
+	protected string? Label { get; init; }
+
+	/// <summary>
+	/// An Icon to use in the tree item
+	/// </summary>
+	protected string? IconUrl { get; init; }
+
+	/// <summary>
+	/// The unique identifier used for this tree item
+	/// </summary>
 	protected string Identifier
 	{
 		get => Name;
 		set => Name = value;
 	}
 
+	/// <inheritdoc cref="BaseTreeViewItem"/>
 	protected BaseTreeViewItem()
 	{
 		IsEnabled = false;
@@ -31,7 +65,10 @@ public abstract class BaseTreeViewItem : TreeViewItem
 		Loaded += (_, _) => SetHeaderValue();
 		IsEnabledChanged += (_, _) => SetHeaderValue();
 	}
-	
+
+	/// <summary>
+	/// Update the header value display
+	/// </summary>
 	protected void SetHeaderValue()
 	{
 		var headerTitle = new TextBlock
