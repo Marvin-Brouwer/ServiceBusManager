@@ -4,9 +4,9 @@ using System;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
+public sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
 {
-	public ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus)
+	internal ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus)
 	{
 		DisplayName = serviceBus.InnerResource.Name;
 		Label = serviceBus.InnerResource.ResourceGroupName;

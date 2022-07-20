@@ -48,6 +48,9 @@ public partial class App : Application
 				@$"Unhandled exception: {exception.GetType().FullName}",
 				MessageBoxButton.OK, MessageBoxImage.Error);
 
+			// Don't restart when error on close.
+			if (CancellationToken.IsCancellationRequested) return;
+
 			var currentProcess = Process.GetCurrentProcess();
 			var restartProcessInfo = new ProcessStartInfo
 			{

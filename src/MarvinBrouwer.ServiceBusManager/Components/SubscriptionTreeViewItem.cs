@@ -5,9 +5,9 @@ using System.Windows;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class SubscriptionTreeViewItem : BaseTreeViewItem
+public sealed class SubscriptionTreeViewItem : BaseTreeViewItem
 {
-	public SubscriptionTreeViewItem(ISubscription subscription)
+	internal SubscriptionTreeViewItem(ISubscription subscription)
 	{
 		DisplayName = subscription.DisplayName;
 		Label = $"tenant: {subscription.Inner.TenantId}";

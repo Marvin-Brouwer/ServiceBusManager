@@ -22,6 +22,22 @@
 	  <None Remove="Resources\Buttons\info.png" />
 	  <None Remove="Resources\Buttons\open-folder.png" />
 	  <None Remove="Resources\Buttons\refresh-button.png" />
+	  <None Remove="Resources\Documentation\clear-01.png" />
+	  <None Remove="Resources\Documentation\clear-02.png" />
+	  <None Remove="Resources\Documentation\clear-03.png" />
+	  <None Remove="Resources\Documentation\download-01.png" />
+	  <None Remove="Resources\Documentation\download-02.png" />
+	  <None Remove="Resources\Documentation\download-03.png" />
+	  <None Remove="Resources\Documentation\download-04.png" />
+	  <None Remove="Resources\Documentation\download-05.png" />
+	  <None Remove="Resources\Documentation\download-06.png" />
+	  <None Remove="Resources\Documentation\requeue-01.png" />
+	  <None Remove="Resources\Documentation\requeue-02.png" />
+	  <None Remove="Resources\Documentation\requeue-03.png" />
+	  <None Remove="Resources\Documentation\tree.png" />
+	  <None Remove="Resources\Documentation\upload-01.png" />
+	  <None Remove="Resources\Documentation\upload-02.png" />
+	  <None Remove="Resources\Documentation\upload-03.png" />
 	  <None Remove="Resources\Icons\app-icon.png" />
 	  <None Remove="Resources\Icons\dead-letter.png" />
 	  <None Remove="Resources\Icons\info.png" />
@@ -32,6 +48,22 @@
 	  <None Remove="Resources\Icons\topic-subscription.png" />
 	  <None Remove="Resources\Icons\topic.png" />
 	  <None Remove="Resources\Icons\warning.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Resources\Documentation\clear-01.png" />
+	  <Resource Include="Resources\Documentation\clear-02.png" />
+	  <Resource Include="Resources\Documentation\clear-03.png" />
+	  <Resource Include="Resources\Documentation\download-01.png" />
+	  <Resource Include="Resources\Documentation\download-02.png" />
+	  <Resource Include="Resources\Documentation\download-03.png" />
+	  <Resource Include="Resources\Documentation\download-04.png" />
+	  <Resource Include="Resources\Documentation\download-05.png" />
+	  <Resource Include="Resources\Documentation\download-06.png" />
+	  <Resource Include="Resources\Documentation\requeue-01.png" />
+	  <Resource Include="Resources\Documentation\requeue-02.png" />
+	  <Resource Include="Resources\Documentation\requeue-03.png" />
+	  <Resource Include="Resources\Documentation\tree.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -49,6 +81,9 @@
 	  <Resource Include="Resources\Buttons\refresh-button.png">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Resource>
+	  <Resource Include="Resources\Documentation\upload-01.png" />
+	  <Resource Include="Resources\Documentation\upload-02.png" />
+	  <Resource Include="Resources\Documentation\upload-03.png" />
 	  <Resource Include="Resources\Icons\app-icon.png">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Resource>
