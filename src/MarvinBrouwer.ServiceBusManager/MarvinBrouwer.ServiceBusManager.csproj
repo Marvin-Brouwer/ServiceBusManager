@@ -120,7 +120,6 @@
 	  <PackageReference Include="Markdig" Version="0.30.2" />
 	  <PackageReference Include="MediaTypeMap.Core" Version="2.3.3" />
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
 	  <PackageReference Include="SharpZipLib" Version="1.3.3" />
 	  <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 	  <PackageReference Include="System.Linq.Async" Version="6.0.1" />
