@@ -5,15 +5,17 @@ using System.Windows.Controls;
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 
 /// <summary>
-/// Interaction logic for RequeueDialog.xaml
+/// Interaction logic for Dialog.xaml
 /// </summary>
 public partial class Dialog : Window
 {
+	/// <inheritdoc cref="Dialog" />
 	protected Dialog()
 	{
 		InitializeComponent();
 	}
 
+	/// <inheritdoc cref="Dialog" />
 	private Dialog(
 		string title,
 		string storeCheckBoxLabel,

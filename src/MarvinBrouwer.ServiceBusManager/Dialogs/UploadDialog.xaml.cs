@@ -7,10 +7,12 @@ namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// </summary>
 public partial class UploadDialog : Page
 {
+	/// <inheritdoc />
 	public UploadDialog()
 	{
 		InitializeComponent();
 	}
+	/// <inheritdoc />
 	public UploadDialog(bool isSubscription, int itemCount)
 	{
 		InitializeComponent();

@@ -9,10 +9,12 @@ namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// </summary>
 public partial class DownloadDialog : Page
 {
+	/// <inheritdoc cref="DownloadDialog" />
 	public DownloadDialog()
 	{
 		InitializeComponent();
 	}
+	/// <inheritdoc cref="DownloadDialog" />
 	public DownloadDialog(int itemCount, bool maxItemsReached)
 	{
 		InitializeComponent();

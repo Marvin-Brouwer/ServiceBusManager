@@ -4,6 +4,7 @@ using System;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
+/// <inheritdoc />
 public sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
 {
 	internal ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus)
@@ -17,11 +18,19 @@ public sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
 		ServiceBus = serviceBus;
 	}
 
+	/// <inheritdoc />
 	public override bool CanReload => true;
+	/// <inheritdoc />
 	public override bool CanClear => false;
+	/// <inheritdoc />
 	public override bool CanUpload => false;
+	/// <inheritdoc />
 	public override bool CanDownload => false;
+	/// <inheritdoc />
 	public override bool CanRequeue => false;
 
+	/// <summary>
+	/// This item's ServiceBus
+	/// </summary>
 	public ServiceBus ServiceBus { get; }
 }
