@@ -1,6 +1,10 @@
 name: Manual Deployment
 
 on:
+  push:
+    branches:
+      #TODO remove before PR
+      - "6-automate-build-and-add-github-application-release"
   workflow_dispatch:
     inputs:
       version:
@@ -52,7 +56,6 @@ jobs:
         dotnet publish ${{github.workspace}}/src/MarvinBrouwer.ServiceBusManager/MarvinBrouwer.ServiceBusManager.csproj /p:PublishProfile=FolderProfile
         --no-restore
         --nologo
-        -p:Version=${{ github.event.inputs.version }}
 ############# TODO generate self installing file https://stackoverflow.com/questions/27904532/how-do-i-make-a-self-extract-and-running-installer
 ############# TODO push artifacts
 ############# TODO trigger on create release? https://github.com/Marvin-Brouwer/ServiceBusManager/releases/new
