@@ -40,7 +40,8 @@ public partial class MainWindow : Window
 	private bool _windowLoading;
 
 	private static CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
-	
+
+	/// <inheritdoc />
 	public MainWindow(
 		IAzureAuthenticationService azureAuthenticationService,
 		Func<TreeView, IAzureLandscapeRenderingService> azureLandscapeRenderingService,

@@ -106,17 +106,3 @@ opens windows explorer to the applications download folder. <br />
   - **Open GitHub repo:** Opens the browser to the GitHub repository where this app is maintained.
   - **Show readme:** Shows this help doc. 
 
-<style>
-	document, body {
-		overflow-x: hidden;
-		overflow-wrap: break-word;
-	}
-	img.icon {
-		margin-bottom: -3px;
-		margin-right: 3px;
-		border: 0px none;
-	}
-	pre code {
-		font-size: .8em;]
-	}
-</style>
