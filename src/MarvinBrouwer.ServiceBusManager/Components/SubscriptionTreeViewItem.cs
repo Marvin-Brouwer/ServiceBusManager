@@ -5,9 +5,10 @@ using System.Windows;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class SubscriptionTreeViewItem : BaseTreeViewItem
+/// <inheritdoc />
+public sealed class SubscriptionTreeViewItem : BaseTreeViewItem
 {
-	public SubscriptionTreeViewItem(ISubscription subscription)
+	internal SubscriptionTreeViewItem(ISubscription subscription)
 	{
 		DisplayName = subscription.DisplayName;
 		Label = $"tenant: {subscription.Inner.TenantId}";
@@ -18,11 +19,19 @@ internal sealed class SubscriptionTreeViewItem : BaseTreeViewItem
 		Subscription = subscription;
 	}
 
+	/// <inheritdoc />
 	public override bool CanReload => true;
+	/// <inheritdoc />
 	public override bool CanClear => false;
+	/// <inheritdoc />
 	public override bool CanUpload => false;
+	/// <inheritdoc />
 	public override bool CanDownload => false;
+	/// <inheritdoc />
 	public override bool CanRequeue => false;
 
+	/// <summary>
+	/// This item's Subscription
+	/// </summary>
 	public ISubscription Subscription { get; }
 }

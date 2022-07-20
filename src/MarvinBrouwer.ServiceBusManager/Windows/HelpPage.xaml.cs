@@ -21,6 +21,8 @@ public partial class HelpPage : Page
 {
 	private static readonly Regex FindFilePathRegex = new ("\\.\\/(?<filePath>(?!https?\\\\:).*?)[\\)\\\"]", RegexOptions.ECMAScript);
 
+	private static readonly Regex HeadingsIdRegex = new (@"<h(?<level>[1-4])>(?<innerText>[^<]*)<\/h[1-4]>", RegexOptions.ECMAScript);
+
 	private HelpPage()
 	{
 		InitializeComponent();
@@ -51,11 +53,20 @@ public partial class HelpPage : Page
 
 		var htmlReadme = Markdown.ToHtml(markDownReadme);
 
+		// Fix the links so the page behaves like on GitHub
+		htmlReadme = HeadingsIdRegex.Replace(htmlReadme, x =>
+		{
+			var level = x.Groups["level"].Value;
+			var text = x.Groups["innerText"].Value;
+			var id = text.Trim().Replace(" ", "-").ToLowerInvariant();
+			return $"<h{level} id=\"{id}\">{text}</h{level}>";
+		});
+
 		page.ReadmeRenderer.NavigateToString(htmlReadme);
 		page.ReadmeRenderer.Navigated += (_, _) =>
 		{
 			page.ReadmeRenderer.Visibility = Visibility.Visible;
-			taskCompletionSource.SetResult();
+			taskCompletionSource.TrySetResult();
 		};
 
 		page.ReadmeRenderer.Navigating += Browser_Navigating;
@@ -81,13 +92,22 @@ public partial class HelpPage : Page
 				source = "/" + source;
 			}
 
-			var stream = Application.GetResourceStream(new Uri($"pack://application:,,,{source}"))?.Stream;
-			if (stream != null)
+			try
 			{
-				var image = Image.FromStream(stream);
-				using var memoryStream = new MemoryStream();
-				image.Save(memoryStream, image.RawFormat);
-				return $"data:image/{imageType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
+				var stream = Application.GetResourceStream(new Uri($"pack://application:,,,{source}"))?.Stream;
+				if (stream != null)
+				{
+					var image = Image.FromStream(stream);
+					using var memoryStream = new MemoryStream();
+					image.Save(memoryStream, image.RawFormat);
+					return $"data:image/{imageType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
+				}
+			}
+			catch (IOException)
+			{
+				// Just return the pack url if not found.
+				// It'll render a not found image but that's what we want anyway here.
+				return $"pack://application:,,,{source}";
 			}
 		}
 
@@ -96,7 +116,7 @@ public partial class HelpPage : Page
 
 	private static void Browser_Navigating(object sender, NavigatingCancelEventArgs e)
 	{
-		if (e.NavigationMode != NavigationMode.New && !e.Uri.Scheme.Contains("http")) return;
+		if (e.NavigationMode != NavigationMode.New || !e.Uri.Scheme.Contains("http")) return;
 		e.Cancel = true;
 
 		//this opens the URL in the user's default browser

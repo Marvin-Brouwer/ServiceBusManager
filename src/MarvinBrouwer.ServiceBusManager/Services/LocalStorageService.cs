@@ -21,14 +21,17 @@ using System.Threading.Tasks;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
 
+/// <inheritdoc />
 public sealed class LocalStorageService : ILocalStorageService
 {
 	private const string TimeStampFormat = "yyyy-MM-dd HHmmss";
 	private const string DownloadFolderName = "Downloads";
 
 	private readonly string _applicationPath;
+	/// <inheritdoc />
 	public string DownloadFolderPath { get; }
 
+	/// <inheritdoc cref="LocalStorageService"/>
 	public LocalStorageService()
 	{
 		_applicationPath = Path.Join(
@@ -38,12 +41,13 @@ public sealed class LocalStorageService : ILocalStorageService
 		DownloadFolderPath = Path.Join(_applicationPath, DownloadFolderName);
 	}
 
-
+	/// <inheritdoc />
 	public void PrepareDownloadFolder()
 	{
 		if (!Directory.Exists(DownloadFolderPath)) Directory.CreateDirectory(DownloadFolderPath);
 	}
 
+	/// <inheritdoc />
 	public void OpenDownloadFolder()
 	{
 		Process.Start(new ProcessStartInfo
@@ -54,6 +58,8 @@ public sealed class LocalStorageService : ILocalStorageService
 			WorkingDirectory = _applicationPath
 		});
 	}
+
+	/// <inheritdoc />
 	public async Task StoreResourceDownload(
 		DateTime timestamp, IAzureResource<IResource> resource,
 		IReadOnlyList<ServiceBusReceivedMessage> messages, CancellationToken cancellationToken)
@@ -145,6 +151,7 @@ public sealed class LocalStorageService : ILocalStorageService
 		filePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) ||
 		filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
 
+	/// <inheritdoc />
 	public async IAsyncEnumerable<(BinaryData fileBlob, string contentType)> ReadFileData(string[] fileNames, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var rawFilePaths = fileNames.Where(IsDataFilePath);

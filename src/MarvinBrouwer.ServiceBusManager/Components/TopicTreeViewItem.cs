@@ -4,9 +4,10 @@ using System;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class TopicTreeViewItem : ResourceTreeViewItem
+/// <inheritdoc />
+public sealed class TopicTreeViewItem : ResourceTreeViewItem
 {
-	public TopicTreeViewItem(Topic topic) : base(topic)
+	internal TopicTreeViewItem(Topic topic) : base(topic)
 	{
 		DisplayName = topic.InnerResource.Name;
 		Label = nameof(topic);
@@ -18,11 +19,19 @@ internal sealed class TopicTreeViewItem : ResourceTreeViewItem
 		Topic = topic;
 	}
 
+	/// <inheritdoc />
 	public override bool CanReload => true;
+	/// <inheritdoc />
 	public override bool CanClear => false;
+	/// <inheritdoc />
 	public override bool CanUpload => true;
+	/// <inheritdoc />
 	public override bool CanDownload => false;
+	/// <inheritdoc />
 	public override bool CanRequeue => false;
 
+	/// <summary>
+	/// This items Topic
+	/// </summary>
 	public Topic Topic { get; }
 }

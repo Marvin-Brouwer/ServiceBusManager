@@ -9,7 +9,7 @@ namespace MarvinBrouwer.ServiceBusManager.Components;
 /// Implementation of a <see cref="TreeViewItem"/> containing some properties for button state management
 /// and labeling access
 /// </summary>
-internal abstract class BaseTreeViewItem : TreeViewItem
+public abstract class BaseTreeViewItem : TreeViewItem
 {
 	/// <summary>
 	/// The plain text display name used in the tree view
@@ -57,7 +57,7 @@ internal abstract class BaseTreeViewItem : TreeViewItem
 	}
 
 	/// <inheritdoc cref="BaseTreeViewItem"/>
-	protected BaseTreeViewItem()
+	protected internal BaseTreeViewItem()
 	{
 		IsEnabled = false;
 		FontWeight = FontWeights.Normal;

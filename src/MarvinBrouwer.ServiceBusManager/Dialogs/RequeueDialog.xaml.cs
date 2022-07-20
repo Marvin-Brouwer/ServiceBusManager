@@ -9,10 +9,12 @@ namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// </summary>
 public partial class RequeueDialog : Page
 {
+	/// <inheritdoc />
 	public RequeueDialog()
 	{
 		InitializeComponent();
 	}
+	/// <inheritdoc />
 	public RequeueDialog(bool isSubscription, int itemCount, bool maxItemsReached)
 	{
 		InitializeComponent();

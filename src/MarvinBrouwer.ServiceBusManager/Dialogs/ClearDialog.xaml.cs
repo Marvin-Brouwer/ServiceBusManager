@@ -9,10 +9,13 @@ namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 /// </summary>
 public partial class ClearDialog : Page
 {
+	/// <inheritdoc cref="ClearDialog" />
 	public ClearDialog()
 	{
 		InitializeComponent();
 	}
+
+	/// <inheritdoc cref="ClearDialog" />
 	public ClearDialog(int itemCount, bool maxItemsReached)
 	{
 		InitializeComponent();

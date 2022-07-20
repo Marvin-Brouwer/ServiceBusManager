@@ -17,7 +17,7 @@ namespace MarvinBrouwer.ServiceBusManager;
 public partial class App : Application
 {
 	private readonly CancellationTokenSource _applicationCancellationTokenSource = new();
-	public CancellationToken CancellationToken => _applicationCancellationTokenSource.Token;
+	internal CancellationToken CancellationToken => _applicationCancellationTokenSource.Token;
 
 	private void App_OnStartup(object sender, StartupEventArgs e)
 	{
@@ -48,6 +48,9 @@ public partial class App : Application
 				@$"Unhandled exception: {exception.GetType().FullName}",
 				MessageBoxButton.OK, MessageBoxImage.Error);
 
+			// Don't restart when error on close.
+			if (CancellationToken.IsCancellationRequested) return;
+
 			var currentProcess = Process.GetCurrentProcess();
 			var restartProcessInfo = new ProcessStartInfo
 			{
@@ -69,7 +72,7 @@ public partial class App : Application
 		SignalCancel();
 	}
 
-	public void SignalCancel()
+	internal void SignalCancel()
 	{
 		_applicationCancellationTokenSource.Cancel();
 	}
