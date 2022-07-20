@@ -19,8 +19,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
-using Microsoft.Xaml.Behaviors.Core;
-
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
 using TreeView = System.Windows.Controls.TreeView;
