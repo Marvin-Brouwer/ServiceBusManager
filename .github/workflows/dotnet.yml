@@ -1,0 +1,28 @@
+name: Manual Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Define the version to be published (SemVer)'
+        required: true
+        type: string
+
+jobs:
+  dotnet-publish:
+    name: "Build and publish application"
+
+    runs-on: windows-latest
+
+    environment:
+      name: GitHub
+      url: "https://github.com/Marvin-Brouwer/ServiceBusManager/releases/${{ github.event.inputs.version }}"
+
+    steps:
+    ###
+    # Checkout repository
+    ###
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        lfs: true
