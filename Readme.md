@@ -10,6 +10,12 @@
 	ServiceBusManager
 </h1>
 
+<span align="center">
+
+![Application screenshot](./src/MarvinBrouwer.ServiceBusManager/Resources/Documentation/base-plate.png)
+
+</span>
+
 <h3 align="center">
 
 [![Stars][repo-stars-shield]][repo-stars-url] [![License][license-shield]][license-url]
@@ -36,7 +42,8 @@ Currently there's no installation present.
 To use this application you'll need to checkout the repository and run:  
 
 ```text
-dotnet run {repo location}
+cd {repo location}
+dotnet run --project ./src/MarvinBrouwer.ServiceBusManager --configuration Release
 ```
 
 A Windows installer will be created ASAP: [#5](https://github.com/Marvin-Brouwer/ServiceBusManager/issues/5).
