@@ -1,4 +1,4 @@
-# <img src="./Resources/app-icon.png" alt="logo" width="25" height="25" /> VTBAIL Queue Manager
+# <img src="./Resources/app-icon.png" alt="logo" width="25" height="25" /> MarvinBrouwer.ServiceBusManager
   
 This is an application to archive/clear/inject queues and topic-subscriptions for any ServiceBus your Azure subscription can access.
 
