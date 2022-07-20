@@ -1,0 +1,58 @@
+name: Manual Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Define the version to be published (SemVer)'
+        required: true
+        type: string
+
+jobs:
+  dotnet-publish:
+    name: "Build and publish application"
+
+    runs-on: windows-latest
+
+    environment:
+      name: GitHub
+      url: "https://github.com/Marvin-Brouwer/ServiceBusManager/releases/${{ github.event.inputs.version }}"
+
+    steps:
+    ###
+    # Checkout repository
+    ###
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        lfs: true
+    ###
+    # 🧰 Setup .Net
+    #
+    # Configure the pipeline to use the correct .Net sdk versions
+    ###
+    - name: 🧰 Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        include-prerelease: true
+        dotnet-version: 6.0.x
+############# TODO Update version no
+    ###
+    # 🗃 Restore dependencies
+    #
+    # Fill the NuGet store with necessary libraries
+    ###
+    - name: 🗃 Restore dependencies
+      run: dotnet restore
+    ###
+    # 🛠 Publish
+    ###
+    - name: 🛠 Publish
+      run: >-
+        dotnet publish ${{github.workspace}}/src/MarvinBrouwer.ServiceBusManager/MarvinBrouwer.ServiceBusManager.csproj /p:PublishProfile=FolderProfile
+        --no-restore
+        --nologo
+        -p:Version=${{ github.event.inputs.version }}
+############# TODO generate self installing file https://stackoverflow.com/questions/27904532/how-do-i-make-a-self-extract-and-running-installer
+############# TODO push artifacts
+############# TODO trigger on create release? https://github.com/Marvin-Brouwer/ServiceBusManager/releases/new
