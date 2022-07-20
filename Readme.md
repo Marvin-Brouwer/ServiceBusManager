@@ -43,8 +43,7 @@ A Windows installer will be created ASAP: [#5](https://github.com/Marvin-Brouwer
 
 ## Using the app
 
-There is a readme for application specific usage available here:  
-[Application readme](./src//MarvinBrouwer.ServiceBusManager/Readme.md).  
+There is a readme for application specific usage available here: [Application readme](./src//MarvinBrouwer.ServiceBusManager/Readme.md).  
 This readme is also available in the application when pressing `F1` or the help button/menu.  
 
 ## Contributing
@@ -78,32 +77,32 @@ All icons are from [flatIcons.com](https://www.flaticon.com/free-icons).
 Attributions are made because we didn't pay for these and flaticon requires us to do so.  
 
 <a href="https://www.flaticon.com/free-icon/unemployment_4840311">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/app-icon.png" alt="" width="18" height="18" class="icon"/>The application icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/app-icon.png" alt="" width="18" height="18" class="icon"/> The application icon
 </a><br/>
 <a href="https://www.flaticon.com/free-icon/info_785822">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/info.png" alt="" width="18" height="18" class="icon"/>The help icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/info.png" alt="" width="18" height="18" class="icon"/> The help icon
 </a><br/>
 <a href="https://www.flaticon.com/premium-icon/refresh-button_2267901">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/refresh-button.png" alt="" width="18" height="18" class="icon"/>The refresh icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/refresh-button.png" alt="" width="18" height="18" class="icon"/> The refresh icon
 </a><br/>
 <a href="https://www.flaticon.com/premium-icon/open-folder_3735134">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/open-folder.png" alt="" width="18" height="18" class="icon"/>The open download folder icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/open-folder.png" alt="" width="18" height="18" class="icon"/> The open download folder icon
 </a><br/>
 <a href="https://www.flaticon.com/free-icon/hub_984448">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/servicebus.png" alt="" width="18" height="18" class="icon"/>The servicebus icons
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/servicebus.png" alt="" width="18" height="18" class="icon"/> The servicebus icons
 </a><br/>
 <a href="https://www.flaticon.com/premium-icon/book_2702096">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/topic.png" alt="" width="18" height="18" class="icon"/>The topic icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/topic.png" alt="" width="18" height="18" class="icon"/> The topic icon
 </a><br/>
 <a href="https://www.flaticon.com/premium-icon/open-book_2702154?related_id=2702154">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/topic-subscription.png" alt="" width="18" height="18" class="icon"/>The topic subscription icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/topic-subscription.png" alt="" width="18" height="18" class="icon"/> The topic subscription icon
 </a><br/>
 <a href="https://www.flaticon.com/premium-icon/books_2702093">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/queue.png" alt="" width="18" height="18" class="icon"/>The queue icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/queue.png" alt="" width="18" height="18" class="icon"/> The queue icon
 </a><br/>
 <a href="https://www.flaticon.com/free-icon/books-stack-of-three_29302">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/dead-letter.png" alt="" width="18" height="18" class="icon"/>The dead letter icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/dead-letter.png" alt="" width="18" height="18" class="icon"/> The dead letter icon
 </a><br/>
 <a href="https://www.flaticon.com/free-icon/warning_595067">
-	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/warning.png" alt="" width="18" height="18" class="icon"/>The prompt warning icon
+	<img src="/src/MarvinBrouwer.ServiceBusManager/Resources/Icons/warning.png" alt="" width="18" height="18" class="icon"/> The prompt warning icon
 </a>
