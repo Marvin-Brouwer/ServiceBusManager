@@ -20,8 +20,24 @@ namespace MarvinBrouwer.ServiceBusManager.Windows;
 public partial class HelpPage : Page
 {
 	private static readonly Regex FindFilePathRegex = new ("\\.\\/(?<filePath>(?!https?\\\\:).*?)[\\)\\\"]", RegexOptions.ECMAScript);
-
 	private static readonly Regex HeadingsIdRegex = new (@"<h(?<level>[1-4])>(?<innerText>[^<]*)<\/h[1-4]>", RegexOptions.ECMAScript);
+
+	private const string AdditionalStyles = @"
+		<style>
+			document, body {
+				overflow-x: hidden;
+				overflow-wrap: break-word;
+			}
+			img.icon {
+				margin-bottom: -3px;
+				margin-right: 3px;
+				border: 0px none;
+			}
+			pre code
+			{
+				font-size: .8em;]
+			}
+		</ style >";
 
 	private HelpPage()
 	{
@@ -62,7 +78,7 @@ public partial class HelpPage : Page
 			return $"<h{level} id=\"{id}\">{text}</h{level}>";
 		});
 
-		page.ReadmeRenderer.NavigateToString(htmlReadme);
+		page.ReadmeRenderer.NavigateToString(htmlReadme + AdditionalStyles);
 		page.ReadmeRenderer.Navigated += (_, _) =>
 		{
 			page.ReadmeRenderer.Visibility = Visibility.Visible;
