@@ -41,7 +41,7 @@ It's like the [AzureStorageExplorer](https://github.com/microsoft/AzureStorageEx
 
 ## Getting started
 
-Currently there's no installation present.  
+Currently there's no installer present.  
 To use this application you'll need to checkout the repository and run:  
 
 ```text
@@ -49,7 +49,8 @@ cd {repo location}
 dotnet run --project ./src/MarvinBrouwer.ServiceBusManager --configuration Release
 ```
 
-A Windows installer will be created ASAP: [#5](https://github.com/Marvin-Brouwer/ServiceBusManager/issues/5).
+We have a story to create a windows installer: [#5](https://github.com/Marvin-Brouwer/ServiceBusManager/issues/5).  
+However, we have no experience in doing this. So help is very much appreciated.  
 
 ## Using the app
 
