@@ -34,7 +34,10 @@
 [//]: # (Document)
 
 This is a management tool for reading and writing to Azure ServiceBuses.  
-It's like the [AzureStorageExplorer](https://github.com/microsoft/AzureStorageExplorer#readme) but instead of Queues and Tables this application supports ServiceBuses (and it's Queues and Topics).  
+It's like the [AzureStorageExplorer](https://github.com/microsoft/AzureStorageExplorer#readme) but instead of Queues and Tables this application supports ServiceBuses (and its Queues and Topics).  
+
+> If you're looking for more control you can also try: [paolosalvatori/ServiceBusExplorer](https://github.com/paolosalvatori/ServiceBusExplorer#readme).  
+> It can do a lot more, but the UI is also a lot less simple.  
 
 ## Getting started
 
