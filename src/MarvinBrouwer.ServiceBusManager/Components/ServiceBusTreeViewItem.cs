@@ -5,15 +5,15 @@ using System;
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
 /// <inheritdoc />
-public sealed class ServiceBusTreeViewItem : ResourceTreeViewItem
+public sealed class ServiceBusTreeViewItem : ServiceBusResourceTreeViewItem
 {
 	internal ServiceBusTreeViewItem(ServiceBus serviceBus) : base(serviceBus)
 	{
-		DisplayName = serviceBus.InnerResource.Name;
-		Label = serviceBus.InnerResource.ResourceGroupName;
+		DisplayName = serviceBus.Name;
+		Label = serviceBus.ResourceGroupName;
 		IconUrl = "/Resources/Icons/servicebus.png";
 
-		Identifier = $"ID{new Guid(serviceBus.InnerResource.Key):N}";
+		Identifier = $"ID{new Guid(serviceBus.Key):N}";
 
 		ServiceBus = serviceBus;
 	}

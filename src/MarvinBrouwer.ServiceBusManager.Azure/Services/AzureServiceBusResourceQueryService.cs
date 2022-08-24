@@ -2,10 +2,7 @@ using Azure.Messaging.ServiceBus;
 
 using MarvinBrouwer.ServiceBusManager.Azure.Extensions;
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
-
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.ServiceBus.Fluent;
-
+using Microsoft.Azure.Management.Fluent;
 using AccessRights = Microsoft.Azure.Management.ServiceBus.Fluent.Models.AccessRights;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -13,29 +10,17 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 /// <inheritdoc />
 public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
 {
-	private readonly IAzureAuthenticationService _authenticationService;
-
-	/// <inheritdoc cref="AzureServiceBusResourceQueryService" />
-	public AzureServiceBusResourceQueryService(IAzureAuthenticationService authenticationService)
-	{
-		_authenticationService = authenticationService;
-	}
-
 	/// <inheritdoc />
-	public async Task<long> GetMessageCount(
-		IAzureResource<IResource> selectedResource, CancellationToken cancellationToken)
+	public async Task<long> GetMessageCount(IAzure azure, IAzureResource selectedResource, CancellationToken cancellationToken)
 	{
-		var credentials = await _authenticationService.Authenticate(selectedResource.Subscription, cancellationToken);
-		var azure = credentials.WithSubscription(selectedResource.Subscription.SubscriptionId);
-
 		var serviceBus = await azure.ServiceBusNamespaces
-			.GetByIdAsync(selectedResource.ServiceBus.Id, cancellationToken);
+			.GetByIdAsync(selectedResource.ServiceBusId, cancellationToken);
 		if (serviceBus is null) return 0;
 
 		if (selectedResource is Queue)
 		{
 			var queue = await serviceBus.Queues
-				.GetByNameAsync(selectedResource.InnerResource.Name, cancellationToken);
+				.GetByNameAsync(selectedResource.Name, cancellationToken);
 
 			return queue?.ActiveMessageCount ?? 0;
 		}
@@ -43,7 +28,7 @@ public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResour
 		if (selectedResource is QueueDeadLetter)
 		{
 			var deadLetterQueue = await serviceBus.Queues
-				.GetByNameAsync(selectedResource.InnerResource.Name, cancellationToken);
+				.GetByNameAsync(selectedResource.Name, cancellationToken);
 
 			return deadLetterQueue?.DeadLetterMessageCount ?? 0;
 		}
@@ -51,11 +36,11 @@ public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResour
 		if (selectedResource is TopicSubscription topicSubscription)
 		{
 			var topic = await serviceBus.Topics
-				.GetByNameAsync(topicSubscription.Topic.Name, cancellationToken);
+				.GetByNameAsync(topicSubscription.TopicName, cancellationToken);
 			if (topic is null) return 0;
 
 			var azureTopicSubscription = await topic.Subscriptions
-				.GetByNameAsync(topicSubscription.InnerResource.Name, cancellationToken);
+				.GetByNameAsync(topicSubscription.Name, cancellationToken);
 
 			return azureTopicSubscription?.ActiveMessageCount ?? 0;
 		}
@@ -63,11 +48,11 @@ public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResour
 		if (selectedResource is TopicSubscriptionDeadLetter deadLetterSubscription)
 		{
 			var topic = await serviceBus.Topics
-				.GetByNameAsync(deadLetterSubscription.Topic.Name, cancellationToken);
+				.GetByNameAsync(deadLetterSubscription.TopicName, cancellationToken);
 			if (topic is null) return 0;
 
 			var azureTopicSubscription = await topic.Subscriptions
-				.GetByNameAsync(deadLetterSubscription.InnerResource.Name, cancellationToken);
+				.GetByNameAsync(deadLetterSubscription.Name, cancellationToken);
 
 			return azureTopicSubscription?.DeadLetterMessageCount ?? 0;
 		}
@@ -76,12 +61,15 @@ public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResour
 	}
 
 	/// <inheritdoc />
-	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(
-		IAzureResource<IResource> selectedResource, ServiceBusReceiveMode receiveMode, CancellationToken cancellationToken)
+	public async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllMessages(IAzure azure, IAzureResource selectedResource,
+		ServiceBusReceiveMode receiveMode, CancellationToken cancellationToken)
 	{
-		var client = await selectedResource.ServiceBus.CreateServiceBusClient(AccessRights.Listen, cancellationToken);
+		var serviceBus = await azure.ServiceBusNamespaces
+			.GetByIdAsync(selectedResource.ServiceBusId, cancellationToken);
+		var client = await serviceBus
+			.CreateServiceBusClient(AccessRights.Listen, cancellationToken);
 
-		if (selectedResource is IAzureResource<IQueue>)
+		if (selectedResource is Queue or QueueDeadLetter)
 		{
 			var queueReceiver = CreateQueueReceiver(client, selectedResource.Path, receiveMode);
 			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
@@ -90,7 +78,7 @@ public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResour
 		if (selectedResource is TopicSubscription subscription)
 		{
 			var queueReceiver = CreateTopicReceiver(client,
-				subscription.Topic.Name,
+				subscription.TopicName,
 				subscription.Path,
 				receiveMode);
 			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);
@@ -98,7 +86,7 @@ public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResour
 		if (selectedResource is TopicSubscriptionDeadLetter deadLetterSubscription)
 		{
 			var queueReceiver = CreateTopicReceiver(client,
-				deadLetterSubscription.Topic.Name,
+				deadLetterSubscription.TopicName,
 				deadLetterSubscription.Path,
 				receiveMode);
 			return await ReceiveMessagesAsync(queueReceiver, cancellationToken);

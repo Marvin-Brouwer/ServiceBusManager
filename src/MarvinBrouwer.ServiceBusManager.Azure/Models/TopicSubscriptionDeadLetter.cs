@@ -8,26 +8,30 @@ using ITopicSubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscri
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 /// <summary>
-/// Representation of a <see cref="ISubscription"/>'s dead-letter Queue
+/// Representation of a <see cref="IAzureSubscription"/>'s dead-letter Queue
 /// </summary>
-public sealed class TopicSubscriptionDeadLetter : AzureResource<ITopicSubscription>
+public sealed class TopicSubscriptionDeadLetter : AzureResource
 {
 	/// <inheritdoc cref="TopicSubscriptionDeadLetter"/>
-	public TopicSubscriptionDeadLetter(IAzureSubscription subscription, IServiceBusNamespace serviceBus, ITopic topic, TopicSubscription topicSubscription)
+	public TopicSubscriptionDeadLetter(IAzureSubscription subscription, IServiceBusNamespace serviceBus, string topicName, TopicSubscription topicSubscription)
 	{
-		Subscription = subscription;
-		ServiceBus = serviceBus;
-		InnerResource = topicSubscription.InnerResource;
+		AzureSubscription = subscription;
+		ServiceBusId = serviceBus.Id;
+		ServiceBusName = serviceBus.Name;
 
-		Topic = topic;
+		Key = topicSubscription.Key;
+		Id = topicSubscription.Id;
+		Name = topicSubscription.Name;
+
+		TopicName = topicName;
 	}
 
 	/// <inheritdoc />
-	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(InnerResource.Name);
+	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(Name);
 
 	/// <summary>
 	/// Reference to this <see cref="TopicSubscriptionDeadLetter"/>s parent <see cref="Models.Topic"/>
 	/// </summary>
-	public ITopic Topic { get; }
+	public string TopicName { get; }
 	
 }

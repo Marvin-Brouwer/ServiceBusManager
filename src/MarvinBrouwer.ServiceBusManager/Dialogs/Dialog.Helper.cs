@@ -52,11 +52,11 @@ public partial class Dialog
 		return item switch
 		{
 			QueueDeadLetterTreeViewItem deadLetter =>
-				deadLetter.Queue.InnerResource.Name + "/" +
+				deadLetter.Queue.Name + "/" +
 				ApplicationConstants.DeadLetterPathSegment,
 			TopicSubscriptionDeadLetterTreeViewItem deadLetter =>
-				deadLetter.Topic.InnerResource.Name + "/" +
-				deadLetter.TopicSubscription.InnerResource.Name + "/" +
+				deadLetter.Topic.Name + "/" +
+				deadLetter.TopicSubscription.Name + "/" +
 				ApplicationConstants.DeadLetterPathSegment,
 			_ => item.DisplayName
 		};

@@ -1,4 +1,3 @@
-using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 using VisualStudioCredential = Azure.Identity.VisualStudioCredential;
@@ -29,7 +28,7 @@ public interface IAzureAuthenticationService
 	Task<IAuthenticated> Authenticate(ITenant tenant, CancellationToken cancellationToken);
 
 	/// <summary>
-	/// Generate a new <see cref="IAuthenticated"/> using the <see cref="ISubscription"/>'s default <see cref="ITenant"/> to create a new Token
+	/// Generate a new <see cref="IAuthenticated"/> using the <see cref="IAzureSubscription"/>'s default <see cref="ITenant"/> to create a new Token
 	/// </summary>
 	Task<IAuthenticated> Authenticate(IAzureSubscription subscription, CancellationToken cancellationToken);
 

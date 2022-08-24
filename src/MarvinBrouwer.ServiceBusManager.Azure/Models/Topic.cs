@@ -7,19 +7,22 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 /// <summary>
 /// Representation of a <see cref="ITopic"/>
 /// </summary>
-public sealed class Topic : AzureResource<ITopic>
+public sealed class Topic : AzureResource
 {
 	/// <inheritdoc cref="Topic"/>
 	public Topic(IAzureSubscription subscription, IServiceBusNamespace serviceBus, ITopic topic)
 	{
-		Subscription = subscription;
-		ServiceBus = serviceBus;
-		InnerResource = topic;
+		AzureSubscription = subscription;
+		ServiceBusId = serviceBus.Id;
+		ServiceBusName = serviceBus.Name;
+
+		Key = topic.Key;
+		Id = topic.Id;
+		Name = topic.Name;
 	}
 
 	/// <summary>
 	/// This <see cref="Topic"/>'s subscribers
 	/// </summary>
 	public IAsyncEnumerable<TopicSubscription> TopicSubscriptions { get; init; } = default!;
-
 }

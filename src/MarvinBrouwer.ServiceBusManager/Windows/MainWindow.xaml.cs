@@ -7,7 +7,8 @@ using MarvinBrouwer.ServiceBusManager.Components;
 using MarvinBrouwer.ServiceBusManager.Dialogs;
 using MarvinBrouwer.ServiceBusManager.Services;
 
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Win32;
 
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Win32;
+
 using Application = System.Windows.Application;
 using Cursors = System.Windows.Input.Cursors;
 using TreeView = System.Windows.Controls.TreeView;
+
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Windows;
 
@@ -35,6 +38,7 @@ public partial class MainWindow : Window
 	private readonly IAzureAuthenticationService _azureAuthenticationService;
 	private readonly IAzureLandscapeRenderingService _azureLandscapeRenderingService;
 	private readonly ILocalStorageService _localStorageService;
+
 	private bool _windowLoading;
 
 	private static CancellationToken CancellationToken => ((App) Application.Current).CancellationToken;
@@ -72,6 +76,14 @@ public partial class MainWindow : Window
 	}
 
 	#region WindowUtilities
+
+	private async Task<IAzure> CreateAzureConnection(IAzureSubscription subscription)
+	{
+		AppendStatusMessage(@"Connecting to azure...");
+		var credentials = await _azureAuthenticationService.Authenticate(subscription, CancellationToken);
+		return credentials.WithSubscription(subscription.SubscriptionId);
+	}
+
 	private void AppendStatusMessage(string message)
 	{
 		var paddingTop = StatusBox.Children.Count == 0 ? 10 : 0;
@@ -132,7 +144,7 @@ public partial class MainWindow : Window
 	{
 		if (AzureLandscape.SelectedItem is BaseTreeViewItem item) item.IsSelected = false;
 		AzureLandscape.IsEnabled = false;
-		foreach (SubscriptionTreeViewItem treeViewItem in AzureLandscape.Items)
+		foreach (AzureSubscriptionTreeViewItem treeViewItem in AzureLandscape.Items)
 		{
 			treeViewItem.IsEnabled = false;
 			treeViewItem.IsExpanded = false;
@@ -165,26 +177,28 @@ public partial class MainWindow : Window
 	private async Task ReloadItem()
 	{
 		if (AzureLandscape.SelectedItem is null) return;
-		if (AzureLandscape.SelectedItem is not BaseTreeViewItem { CanReload: true } baseTreeViewItem) return;
+		if (AzureLandscape.SelectedItem is not AzureResourceTreeViewItem { CanReload: true } treeViewItem) return;
 
 		ClearStatusPanel();
+
+		var azure = await CreateAzureConnection(treeViewItem.AzureSubscription);
 		AppendStatusMessage(@"Reloading item data...");
 		WindowLoading = true;
 		ValidateButtonState();
 
-		if (AzureLandscape.SelectedItem is SubscriptionTreeViewItem subscriptionTreeViewItem)
+		if (AzureLandscape.SelectedItem is AzureSubscriptionTreeViewItem subscriptionTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadSubscriptionContents(subscriptionTreeViewItem, CancellationToken);
+			await _azureLandscapeRenderingService.LoadSubscriptionContents(azure, subscriptionTreeViewItem, CancellationToken);
 		}
 
 		if (AzureLandscape.SelectedItem is ServiceBusTreeViewItem serviceBusTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadServiceBusResources(serviceBusTreeViewItem, CancellationToken);
+			await _azureLandscapeRenderingService.LoadServiceBusResources(azure, serviceBusTreeViewItem, CancellationToken);
 		}
 
 		if (AzureLandscape.SelectedItem is TopicTreeViewItem topicTreeViewItem)
 		{
-			await _azureLandscapeRenderingService.LoadTopicSubscriptions(topicTreeViewItem, CancellationToken);
+			await _azureLandscapeRenderingService.LoadTopicSubscriptions(azure, topicTreeViewItem, CancellationToken);
 		}
 
 		WindowLoading = false;
@@ -238,7 +252,7 @@ public partial class MainWindow : Window
 	}
 
 	private async Task<IReadOnlyList<ServiceBusReceivedMessage>> ReadAllResourceMessages(
-		ResourceTreeViewItem treeViewItem, ServiceBusReceiveMode receiveMode)
+		IAzure azure, ServiceBusResourceTreeViewItem treeViewItem, ServiceBusReceiveMode receiveMode)
 	{
 		AppendStatusMessage(
 			receiveMode == ServiceBusReceiveMode.PeekLock
@@ -246,12 +260,12 @@ public partial class MainWindow : Window
 			: "Reading message data (destructive)");
 
 		var messages = await _resourceQueryService
-			.ReadAllMessages(treeViewItem.Resource, receiveMode, CancellationToken);
+			.ReadAllMessages(azure, treeViewItem.Resource, receiveMode, CancellationToken);
 
 		AppendStatusMessage($"Downloaded {messages.Count} items");
 		return messages;
 	}
-	private async Task StoreData(DateTime timestamp, IAzureResource<IResource> selectedResource, IReadOnlyList<ServiceBusReceivedMessage> serviceBusMessages)
+	private async Task StoreData(DateTime timestamp, IAzureResource selectedResource, IReadOnlyList<ServiceBusReceivedMessage> serviceBusMessages)
 	{
 		AppendStatusMessage(@"Storing resource data");
 
@@ -262,14 +276,16 @@ public partial class MainWindow : Window
 
 	private async void ShowRequeueDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ServiceBusResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanRequeue) return;
 
 		WindowLoading = true;
 		ValidateButtonState();
 		ClearStatusPanel();
+		var azure = await CreateAzureConnection(treeViewItem.Resource.AzureSubscription);
+
 		AppendStatusMessage("Getting item count to requeue");
-		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
+		var fullCount = await _resourceQueryService.GetMessageCount(azure, treeViewItem.Resource, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var (requeue, storeDownload) = Dialog.ConfirmRequeue(treeViewItem, itemCount, maxItemsReached);
@@ -282,11 +298,11 @@ public partial class MainWindow : Window
 		}
 
 		var timestamp = DateTime.UtcNow;
-		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem, ServiceBusReceiveMode.PeekLock);
+		var serviceBusMessages = await ReadAllResourceMessages(azure, treeViewItem, ServiceBusReceiveMode.PeekLock);
 
 		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 		
-		await _resourceCommandService.QueueMessages(treeViewItem.Resource, serviceBusMessages, CancellationToken);
+		await _resourceCommandService.QueueMessages(azure, treeViewItem.Resource, serviceBusMessages, CancellationToken);
 		AppendStatusMessage($"Requeued {itemCount} items");
 		WindowLoading = false;
 		ValidateButtonState();
@@ -294,14 +310,16 @@ public partial class MainWindow : Window
 
 	private async void ShowDownloadDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ServiceBusResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanDownload) return;
 
 		WindowLoading = true;
 		ValidateButtonState();
 		ClearStatusPanel();
+		var azure = await CreateAzureConnection(treeViewItem.Resource.AzureSubscription);
+
 		AppendStatusMessage("Getting item count to download");
-		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
+		var fullCount = await _resourceQueryService.GetMessageCount(azure, treeViewItem.Resource, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var download = Dialog.ConfirmDownload(treeViewItem, itemCount, maxItemsReached);
@@ -314,7 +332,7 @@ public partial class MainWindow : Window
 		}
 
 		var timestamp = DateTime.UtcNow;
-		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem, ServiceBusReceiveMode.PeekLock);
+		var serviceBusMessages = await ReadAllResourceMessages(azure, treeViewItem, ServiceBusReceiveMode.PeekLock);
 
 		await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 
@@ -325,7 +343,7 @@ public partial class MainWindow : Window
 
 	private async void ShowUploadDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ServiceBusResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanUpload) return;
 
 		WindowLoading = true;
@@ -371,9 +389,10 @@ public partial class MainWindow : Window
 			ValidateButtonState();
 			return;
 		}
+		var azure = await CreateAzureConnection(treeViewItem.Resource.AzureSubscription);
 
 		await _resourceCommandService
-			.QueueMessages(treeViewItem.Resource, dataToPush, CancellationToken);
+			.QueueMessages(azure, treeViewItem.Resource, dataToPush, CancellationToken);
 		AppendStatusMessage($"Uploaded {dataToPush.Count} items");
 		WindowLoading = false;
 		ValidateButtonState();
@@ -381,14 +400,16 @@ public partial class MainWindow : Window
 
 	private async void ShowClearDialog(object sender, RoutedEventArgs e)
 	{
-		if (AzureLandscape.SelectedItem is not ResourceTreeViewItem treeViewItem) return;
+		if (AzureLandscape.SelectedItem is not ServiceBusResourceTreeViewItem treeViewItem) return;
 		if (!treeViewItem.CanClear) return;
 
 		WindowLoading = true;
 		ValidateButtonState();
 		ClearStatusPanel();
+		var azure = await CreateAzureConnection(treeViewItem.Resource.AzureSubscription);
+
 		AppendStatusMessage("Getting item count to clear");
-		var fullCount = await _resourceQueryService.GetMessageCount(treeViewItem.Resource, CancellationToken);
+		var fullCount = await _resourceQueryService.GetMessageCount(azure, treeViewItem.Resource, CancellationToken);
 		var (itemCount, maxItemsReached) = ValidateItemCount(fullCount);
 
 		var (clear, storeDownload) = Dialog.ConfirmClear(treeViewItem, itemCount, maxItemsReached);
@@ -401,7 +422,7 @@ public partial class MainWindow : Window
 		}
 
 		var timestamp = DateTime.UtcNow;
-		var serviceBusMessages = await ReadAllResourceMessages(treeViewItem, ServiceBusReceiveMode.ReceiveAndDelete);
+		var serviceBusMessages = await ReadAllResourceMessages(azure, treeViewItem, ServiceBusReceiveMode.ReceiveAndDelete);
 
 		if (storeDownload) await StoreData(timestamp, treeViewItem.Resource, serviceBusMessages);
 

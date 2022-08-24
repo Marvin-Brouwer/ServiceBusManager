@@ -5,14 +5,14 @@ using System;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class TopicSubscriptionTreeViewItem : ResourceTreeViewItem
+internal sealed class TopicSubscriptionTreeViewItem : ServiceBusResourceTreeViewItem
 {
 	public TopicSubscriptionTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription)
 	{
-		DisplayName = topicSubscription.InnerResource.Name;
+		DisplayName = topicSubscription.Name;
 		IconUrl = "/Resources/Icons/topic-subscription.png";
 
-		Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}";
+		Identifier = $"ID{new Guid(topicSubscription.Key):N}";
 		IsEnabled = true;
 		SetHeaderValue();
 
@@ -30,14 +30,14 @@ internal sealed class TopicSubscriptionTreeViewItem : ResourceTreeViewItem
 	public TopicSubscription TopicSubscription { get; }
 }
 
-internal sealed class TopicSubscriptionDeadLetterTreeViewItem : ResourceTreeViewItem
+internal sealed class TopicSubscriptionDeadLetterTreeViewItem : ServiceBusResourceTreeViewItem
 {
 	public TopicSubscriptionDeadLetterTreeViewItem(TopicSubscription topicSubscription, Topic topic) : base(topicSubscription)
 	{
 		DisplayName = ApplicationConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";
 
-		Identifier = $"ID{new Guid(topicSubscription.InnerResource.Key):N}_dl";
+		Identifier = $"ID{new Guid(topicSubscription.Key):N}_dl";
 		IsEnabled = true;
 		SetHeaderValue();
 

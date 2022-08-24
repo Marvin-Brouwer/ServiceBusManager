@@ -1,4 +1,3 @@
-using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
 
 using System.Runtime.CompilerServices;
@@ -19,7 +18,7 @@ public sealed class AzureSubscriptionService : IAzureSubscriptionService
 	}
 
 	/// <inheritdoc />
-	public async IAsyncEnumerable<IAzureSubscription> ListSubscriptions([EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<(IAzure azure, IAzureSubscription subscription)> ListSubscriptions([EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var azureAuthentication = await _authenticationService
 			.AuthenticateDefaultTenant(cancellationToken);
@@ -31,8 +30,9 @@ public sealed class AzureSubscriptionService : IAzureSubscriptionService
 		foreach (var subscription in subscriptions)
 		{
 			if (subscription.Inner.State != SubscriptionState.Enabled) continue;
+			var azure = azureAuthentication.WithSubscription(subscription.SubscriptionId);
 
-			yield return subscription;
+			yield return (azure, subscription);
 		}
 
 		// It may seem counter-intuitive that we need to re-authenticate for each tenant.
@@ -57,8 +57,9 @@ public sealed class AzureSubscriptionService : IAzureSubscriptionService
 			foreach (var subscription in tenantSubscriptions)
 			{
 				if (subscription.Inner.State != SubscriptionState.Enabled) continue;
+				var azure = tenantAuthentication.WithSubscription(subscription.SubscriptionId);
 
-				yield return subscription;
+				yield return (azure, subscription);
 			}
 		}
 	}
