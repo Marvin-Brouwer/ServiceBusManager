@@ -2,6 +2,8 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
 
 using System.Runtime.CompilerServices;
+using Microsoft.Azure.Management.Fluent;
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
@@ -17,7 +19,7 @@ public sealed class AzureSubscriptionService : IAzureSubscriptionService
 	}
 
 	/// <inheritdoc />
-	public async IAsyncEnumerable<ISubscription> ListSubscriptions([EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<IAzureSubscription> ListSubscriptions([EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var azureAuthentication = await _authenticationService
 			.AuthenticateDefaultTenant(cancellationToken);

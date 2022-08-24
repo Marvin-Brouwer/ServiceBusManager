@@ -1,19 +1,23 @@
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
+using ITopicSubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 /// <summary>
 /// Representation of a <see cref="ISubscription"/>
 /// </summary>
-public sealed class TopicSubscription : AzureResource<ISubscription>
+public sealed class TopicSubscription : AzureResource<ITopicSubscription>
 {
 	/// <inheritdoc cref="TopicSubscription"/>
-	public TopicSubscription(IServiceBusNamespace serviceBus, ITopic topic, ISubscription subscription)
+	public TopicSubscription(IAzureSubscription subscription, IServiceBusNamespace serviceBus, ITopic topic, ITopicSubscription topicSubscription)
 	{
+		Subscription = subscription;
 		ServiceBus = serviceBus;
-		InnerResource = subscription;
+		InnerResource = topicSubscription;
 
-		DeadLetter = new TopicSubscriptionDeadLetter(ServiceBus, topic, this);
+		DeadLetter = new TopicSubscriptionDeadLetter(subscription, ServiceBus, topic, this);
 		Topic = topic;
 	}
 

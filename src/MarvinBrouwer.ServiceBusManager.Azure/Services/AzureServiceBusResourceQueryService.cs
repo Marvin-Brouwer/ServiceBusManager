@@ -13,29 +13,63 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 /// <inheritdoc />
 public sealed class AzureServiceBusResourceQueryService : IAzureServiceBusResourceQueryService
 {
+	private readonly IAzureAuthenticationService _authenticationService;
+
+	/// <inheritdoc cref="AzureServiceBusResourceQueryService" />
+	public AzureServiceBusResourceQueryService(IAzureAuthenticationService authenticationService)
+	{
+		_authenticationService = authenticationService;
+	}
+
 	/// <inheritdoc />
 	public async Task<long> GetMessageCount(
 		IAzureResource<IResource> selectedResource, CancellationToken cancellationToken)
 	{
-		if (selectedResource is Queue queue)
+		var credentials = await _authenticationService.Authenticate(selectedResource.Subscription, cancellationToken);
+		var azure = credentials.WithSubscription(selectedResource.Subscription.SubscriptionId);
+
+		var serviceBus = await azure.ServiceBusNamespaces
+			.GetByIdAsync(selectedResource.ServiceBus.Id, cancellationToken);
+		if (serviceBus is null) return 0;
+
+		if (selectedResource is Queue)
 		{
-			return (await queue.InnerResource.RefreshAsync(cancellationToken))
-				.ActiveMessageCount;
+			var queue = await serviceBus.Queues
+				.GetByNameAsync(selectedResource.InnerResource.Name, cancellationToken);
+
+			return queue?.ActiveMessageCount ?? 0;
 		}
-		if (selectedResource is QueueDeadLetter deadLetterQueue)
+
+		if (selectedResource is QueueDeadLetter)
 		{
-			return (await deadLetterQueue.InnerResource.RefreshAsync(cancellationToken))
-				.DeadLetterMessageCount;
+			var deadLetterQueue = await serviceBus.Queues
+				.GetByNameAsync(selectedResource.InnerResource.Name, cancellationToken);
+
+			return deadLetterQueue?.DeadLetterMessageCount ?? 0;
 		}
-		if (selectedResource is TopicSubscription subscription)
+
+		if (selectedResource is TopicSubscription topicSubscription)
 		{
-			return (await subscription.InnerResource.RefreshAsync(cancellationToken))
-				.ActiveMessageCount;
+			var topic = await serviceBus.Topics
+				.GetByNameAsync(topicSubscription.Topic.Name, cancellationToken);
+			if (topic is null) return 0;
+
+			var azureTopicSubscription = await topic.Subscriptions
+				.GetByNameAsync(topicSubscription.InnerResource.Name, cancellationToken);
+
+			return azureTopicSubscription?.ActiveMessageCount ?? 0;
 		}
+
 		if (selectedResource is TopicSubscriptionDeadLetter deadLetterSubscription)
 		{
-			return (await deadLetterSubscription.InnerResource.RefreshAsync(cancellationToken))
-				.DeadLetterMessageCount;
+			var topic = await serviceBus.Topics
+				.GetByNameAsync(deadLetterSubscription.Topic.Name, cancellationToken);
+			if (topic is null) return 0;
+
+			var azureTopicSubscription = await topic.Subscriptions
+				.GetByNameAsync(deadLetterSubscription.InnerResource.Name, cancellationToken);
+
+			return azureTopicSubscription?.DeadLetterMessageCount ?? 0;
 		}
 
 		throw new NotSupportedException(selectedResource.GetType().FullName);

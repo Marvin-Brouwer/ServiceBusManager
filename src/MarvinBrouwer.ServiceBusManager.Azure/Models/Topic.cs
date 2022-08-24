@@ -1,5 +1,7 @@
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 /// <summary>
@@ -8,8 +10,9 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 public sealed class Topic : AzureResource<ITopic>
 {
 	/// <inheritdoc cref="Topic"/>
-	public Topic(IServiceBusNamespace serviceBus, ITopic topic)
+	public Topic(IAzureSubscription subscription, IServiceBusNamespace serviceBus, ITopic topic)
 	{
+		Subscription = subscription;
 		ServiceBus = serviceBus;
 		InnerResource = topic;
 	}

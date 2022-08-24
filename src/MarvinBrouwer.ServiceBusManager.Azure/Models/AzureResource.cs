@@ -1,6 +1,8 @@
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 /// <summary>
@@ -9,6 +11,11 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 public interface IAzureResource<out TResource>
 	where TResource : IResource
 {
+	/// <summary>
+	/// The original <see cref="IAzureSubscription"/> to which this resource belongs.
+	/// </summary>
+	IAzureSubscription Subscription { get; }
+
 	/// <summary>
 	/// The original <see cref="IServiceBusNamespace"/> to which this resource belongs.
 	/// </summary>
@@ -29,6 +36,9 @@ public interface IAzureResource<out TResource>
 public abstract class AzureResource<TResource> : IAzureResource<TResource>
 	where TResource : IResource
 {
+	/// <inheritdoc />
+	public IAzureSubscription Subscription { get; protected init; } = default!;
+
 	/// <inheritdoc />
 	public IServiceBusNamespace ServiceBus { get; protected init; } = default!;
 

@@ -1,5 +1,7 @@
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 /// <summary>
@@ -8,12 +10,13 @@ namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 public sealed class Queue : AzureResource<IQueue>
 {
 	/// <inheritdoc cref="Queue"/>
-	public Queue(IServiceBusNamespace serviceBus, IQueue queue)
+	public Queue(IAzureSubscription subscription, IServiceBusNamespace serviceBus, IQueue queue)
 	{
+		Subscription = subscription;
 		ServiceBus = serviceBus;
 		InnerResource = queue;
 
-		DeadLetter = new QueueDeadLetter(serviceBus, this);
+		DeadLetter = new QueueDeadLetter(subscription, serviceBus, this);
 	}
 
 	/// <summary>
