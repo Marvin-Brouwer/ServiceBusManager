@@ -47,6 +47,13 @@ public partial class Dialog
 		return dialog.ShowDialog() ?? false;
 	}
 
+	internal static bool ConfirmReload()
+	{
+		var dialog = new Dialog($"Reload all subscriptions?", new ReloadDialog());
+
+		return dialog.ShowDialog() ?? false;
+	}
+
 	private static string FormatTitle(BaseTreeViewItem item)
 	{
 		return item switch

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
@@ -31,24 +32,29 @@ public sealed class AzureLandscapeRenderingService : IAzureLandscapeRenderingSer
 
 	/// <inheritdoc />
 	public async IAsyncEnumerable<AzureSubscriptionTreeViewItem> LoadSubscriptions(
-		[EnumeratorCancellation] CancellationToken cancellationToken)
+		List<AzureConnection> azureConnections, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var subscriptions = await _subscriptionService
-			.ListSubscriptions(cancellationToken)
-			.ToListAsync(cancellationToken);
-		
 		var hasCleared = false;
 		var subscriptionTasks = new List<Task>();
-		foreach (var (azure, subscription) in subscriptions)
-		{
-			if (!hasCleared) _azureLandscape.Items.Clear();
-			hasCleared = true;
 
-			var subscriptionTreeViewItem = new AzureSubscriptionTreeViewItem(subscription);
-			
-			yield return subscriptionTreeViewItem;
-			_azureLandscape.Items.Add(subscriptionTreeViewItem);
-			subscriptionTasks.Add(LoadSubscriptionContents(azure, subscriptionTreeViewItem, cancellationToken));
+		foreach (var azureConnection in azureConnections)
+		{
+			var subscriptions = await _subscriptionService
+				.ListSubscriptions(azureConnection, cancellationToken)
+				.ToListAsync(cancellationToken);
+
+			foreach (var subscription in subscriptions)
+			{
+				if (!hasCleared) _azureLandscape.Items.Clear();
+				hasCleared = true;
+
+				var subscriptionTreeViewItem = new AzureSubscriptionTreeViewItem(subscription);
+
+				yield return subscriptionTreeViewItem;
+				_azureLandscape.Items.Add(subscriptionTreeViewItem);
+				var azureClient = azureConnection.AzureClient.WithSubscription(subscription.SubscriptionId);
+				subscriptionTasks.Add(LoadSubscriptionContents(azureClient, subscriptionTreeViewItem, cancellationToken));
+			}
 		}
 
 		await Task.WhenAll(subscriptionTasks);

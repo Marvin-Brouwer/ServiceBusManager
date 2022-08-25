@@ -1,7 +1,5 @@
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-
 using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;

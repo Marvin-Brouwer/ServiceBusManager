@@ -7,19 +7,23 @@
              mc:Ignorable="d" 
              d:DesignHeight="50" d:DesignWidth="400"
 			 Height="50"
-             Padding="10, 10, 10, 0">
+             Padding="10, 7, 10, 0">
 	<UserControl.Background>
 		<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
 	</UserControl.Background>
 	<StackPanel>
-		<StackPanel
-			Orientation="Horizontal"
-			HorizontalAlignment="Right"
-			Margin="0, 0, 0, 2">
-			<Button Content="Ok" TabIndex="0"
+		<StackPanel Visibility="Hidden" x:Name="ButtonPanel" 
+		            Orientation="Horizontal"
+		            HorizontalAlignment="Right"
+		            Margin="0, 0, 0, 2">
+			<Button Content="Ok" TabIndex="0" x:Name="OkButton" 
 			        Margin="0, 0, 10, 0"
+			        Padding="20, 0, 20, 0"
+			        Height="22"
 			        Click="OnOkClick"></Button>
-			<Button Content="Cancel"
+			<Button Content="Cancel" x:Name="CancelButton" 
+			        Padding="20, 0, 20, 0"
+			        Height="22"
 			        Click="OnCancelClick"></Button>
 		</StackPanel>
 		<CheckBox x:Name="StoreBeforeActionCheckbox" Content="Save?" IsChecked="True" HorizontalAlignment="Right" HorizontalContentAlignment="Right"></CheckBox>

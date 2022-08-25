@@ -35,9 +35,10 @@ public partial class MainWindow : Window
 {
 	private readonly IAzureServiceBusResourceCommandService _resourceCommandService;
 	private readonly IAzureServiceBusResourceQueryService _resourceQueryService;
-	private readonly IAzureAuthenticationService _azureAuthenticationService;
+	private readonly IAzureConnectionService _azureConnectionService;
 	private readonly IAzureLandscapeRenderingService _azureLandscapeRenderingService;
 	private readonly ILocalStorageService _localStorageService;
+	private List<AzureConnection> _connections;
 
 	private bool _windowLoading;
 
@@ -45,19 +46,21 @@ public partial class MainWindow : Window
 
 	/// <inheritdoc />
 	public MainWindow(
-		IAzureAuthenticationService azureAuthenticationService,
 		Func<TreeView, IAzureLandscapeRenderingService> azureLandscapeRenderingService,
 		ILocalStorageService localStorageService,
 		IAzureServiceBusResourceQueryService resourceQueryService,
-		IAzureServiceBusResourceCommandService resourceCommandService)
+		IAzureServiceBusResourceCommandService resourceCommandService,
+		IAzureConnectionService azureConnectionService)
 	{
 		InitializeComponent();
 
-		_azureAuthenticationService = azureAuthenticationService;
 		_azureLandscapeRenderingService = azureLandscapeRenderingService(AzureLandscape);
 		_localStorageService = localStorageService;
 		_resourceQueryService = resourceQueryService;
 		_resourceCommandService = resourceCommandService;
+		_azureConnectionService = azureConnectionService;
+
+		_connections = new ();
 
 		InitializeWindow();
 	}
@@ -77,11 +80,21 @@ public partial class MainWindow : Window
 
 	#region WindowUtilities
 
+	// todo explain
 	private async Task<IAzure> CreateAzureConnection(IAzureSubscription subscription)
 	{
-		AppendStatusMessage(@"Connecting to azure...");
-		var credentials = await _azureAuthenticationService.Authenticate(subscription, CancellationToken);
-		return credentials.WithSubscription(subscription.SubscriptionId);
+		AppendStatusMessage(@"Checking token...");
+		var connectionIndex = _connections.FindIndex(connection => connection.Tenant.TenantId == subscription.Inner.TenantId);
+		var connection = _connections[connectionIndex];
+		if (connection.Expired)
+		{
+			AppendStatusMessage(@"Re-authenticating...");
+			connection = await _azureConnectionService.RefreshConnection(connection, CancellationToken);
+			_connections[connectionIndex] = connection;
+		}
+
+		return connection.AzureClient
+			.WithSubscription(subscription.SubscriptionId);
 	}
 
 	private void AppendStatusMessage(string message)
@@ -122,8 +135,13 @@ public partial class MainWindow : Window
 	{
 		WindowLoading = true;
 		SetupKeyBindings();
-		await _azureAuthenticationService.AuthenticateDefaultTenant(CancellationToken);
 		_localStorageService.PrepareDownloadFolder();
+
+		AppendStatusMessage(@"Authenticating...");
+		_connections = await _azureConnectionService
+			.ConnectToAllTenants(CancellationToken)
+			.ToListAsync(CancellationToken);
+
 		Cursor = Cursors.Arrow;
 		await LoadFullAzureLandscape();
 	}
@@ -137,6 +155,19 @@ public partial class MainWindow : Window
 	{
 		ClearStatusPanel();
 		AppendStatusMessage(@"Reloading all data...");
+		
+		if (!Dialog.ConfirmReload())
+		{
+			AppendStatusMessage("Canceled");
+			WindowLoading = false;
+			ValidateButtonState();
+			return;
+		}
+
+		AppendStatusMessage(@"Re-authenticating...");
+		_connections = await _azureConnectionService.ConnectToAllTenants(CancellationToken)
+			.ToListAsync(CancellationToken);
+
 		await LoadFullAzureLandscape();
 	}
 
@@ -153,8 +184,9 @@ public partial class MainWindow : Window
 		WindowLoading = true;
 		AzureLandscape.IsEnabled = true;
 
+		AppendStatusMessage(@"Loading service bus data...");
 		var subscriptionTreeViewItems = _azureLandscapeRenderingService
-			.LoadSubscriptions(CancellationToken);
+			.LoadSubscriptions(_connections, CancellationToken);
 
 		await subscriptionTreeViewItems.ToListAsync(CancellationToken);
 		

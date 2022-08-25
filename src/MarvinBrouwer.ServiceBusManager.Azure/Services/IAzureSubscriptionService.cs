@@ -1,4 +1,4 @@
-using Microsoft.Azure.Management.Fluent;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
@@ -11,5 +11,5 @@ public interface IAzureSubscriptionService
 	/// <summary>
 	/// List all the subscription the current authenticated user has access to.
 	/// </summary>
-	IAsyncEnumerable<(IAzure azure, IAzureSubscription subscription)> ListSubscriptions(CancellationToken cancellationToken);
+	IAsyncEnumerable<IAzureSubscription> ListSubscriptions(AzureConnection connection, CancellationToken cancellationToken);
 }

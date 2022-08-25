@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace MarvinBrouwer.ServiceBusManager.Dialogs;
 
@@ -25,6 +26,7 @@ public partial class Dialog : Window
 		Icon = null;
 		Title = title;
 
+		DialogBar.ShowCheckBox = true;
 		DialogBar.CheckBoxLabel = storeCheckBoxLabel;
 		DialogBar.OnOk += OnOkClick;
 		DialogBar.OnCancel += OnCancelClick;
@@ -37,9 +39,12 @@ public partial class Dialog : Window
 		Page dialogPage)
 	{
 		InitializeComponent();
+		Loaded += (_, _) => SetupKeyBindings();
+
 		Icon = null;
 		Title = title;
 
+		DialogBar.ShowCheckBox = false;
 		DialogBar.CheckBoxLabel = null;
 		DialogBar.OnOk += OnOkClick;
 		DialogBar.OnCancel += OnCancelClick;
@@ -55,5 +60,21 @@ public partial class Dialog : Window
 	private void OnCancelClick(object? sender, EventArgs e)
 	{
 		DialogResult = false;
+	}
+	private void SetupKeyBindings()
+	{
+		KeyDown += (_, keyArgs) =>
+		{
+			if (keyArgs.Key == Key.Escape)
+			{
+				DialogResult = false;
+				Close();
+			}
+			if (keyArgs.Key == Key.Return)
+			{
+				DialogResult = true;
+				Close();
+			}
+		};
 	}
 }

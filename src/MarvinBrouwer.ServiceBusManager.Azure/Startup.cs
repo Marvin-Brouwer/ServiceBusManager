@@ -15,6 +15,7 @@ public static class Startup
 	public static void ConfigureServiceBusManagerAzureServices(this IServiceCollection services)
 	{
 		services.AddScoped<IAzureAuthenticationService, AzureAuthenticationService>();
+		services.AddScoped<IAzureConnectionService, AzureConnectionService>();
 		services.AddScoped<IAzureSubscriptionService, AzureSubscriptionService>();
 		services.AddScoped<IAzureServiceBusService, AzureServiceBusService>();
 		services.AddScoped<IAzureServiceBusResourceQueryService, AzureServiceBusResourceQueryService>();

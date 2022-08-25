@@ -2,6 +2,7 @@ using MarvinBrouwer.ServiceBusManager.Components;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
@@ -14,7 +15,8 @@ public interface IAzureLandscapeRenderingService
 	/// <summary>
 	/// Load all Azure subscriptions available to the current User
 	/// </summary>
-	IAsyncEnumerable<AzureSubscriptionTreeViewItem> LoadSubscriptions(CancellationToken cancellationToken);
+	IAsyncEnumerable<AzureSubscriptionTreeViewItem> LoadSubscriptions(
+		List<AzureConnection> azureConnections, CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Load all ServiceBuses for this subscription

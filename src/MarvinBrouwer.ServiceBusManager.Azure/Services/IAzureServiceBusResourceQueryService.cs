@@ -16,7 +16,7 @@ public interface IAzureServiceBusResourceQueryService
 
 	/// <summary>
 	/// Read all the messages (max 100) <br />
-	/// that are queued for this <see cref="IAzureResource{TResource}"/>
+	/// that are queued for this <see cref="IAzureResource"/>
 	/// (<see cref="Queue"/>/<see cref="QueueDeadLetter"/>/<see cref="TopicSubscription"/>/<see cref="TopicSubscriptionDeadLetter"/>)
 	/// </summary>
 	/// <param name="azure"></param>

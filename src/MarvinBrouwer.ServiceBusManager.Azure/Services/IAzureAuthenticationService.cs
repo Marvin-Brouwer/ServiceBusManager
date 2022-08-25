@@ -1,3 +1,4 @@
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 
 using VisualStudioCredential = Azure.Identity.VisualStudioCredential;
@@ -20,16 +21,16 @@ public interface IAzureAuthenticationService
 	/// <remarks>
 	/// Since this is a development tool, the user will authenticate using the <see cref="VisualStudioCredential"/>
 	/// </remarks>
-	Task<IAuthenticated> AuthenticateDefaultTenant(CancellationToken cancellationToken);
+	Task<AzureAuthentication> AuthenticateDefaultTenant(CancellationToken cancellationToken);
 
 	/// <summary>
 	/// Generate a new <see cref="IAuthenticated"/> using the <see cref="ITenant"/> to create a new Token
 	/// </summary>
-	Task<IAuthenticated> Authenticate(ITenant tenant, CancellationToken cancellationToken);
+	Task<AzureAuthentication> Authenticate(ITenant tenant, CancellationToken cancellationToken);
 
 	/// <summary>
-	/// Generate a new <see cref="IAuthenticated"/> using the <see cref="IAzureSubscription"/>'s default <see cref="ITenant"/> to create a new Token
+	/// Generate a new <see cref="AzureAuthentication"/> using the <see cref="IAzureSubscription"/>'s default <see cref="ITenant"/> to create a new Token
 	/// </summary>
-	Task<IAuthenticated> Authenticate(IAzureSubscription subscription, CancellationToken cancellationToken);
+	Task<AzureAuthentication> Authenticate(IAzureSubscription subscription, CancellationToken cancellationToken);
 
 }

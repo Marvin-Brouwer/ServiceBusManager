@@ -1,13 +1,11 @@
 using Azure.Core;
 using Azure.Identity;
-
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.Subscription;
 using Microsoft.Rest;
-
-using IAuthenticated = Microsoft.Azure.Management.Fluent.Azure.IAuthenticated;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
@@ -66,7 +64,7 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 	}
 
 	/// <inheritdoc />
-	public async Task<IAuthenticated> AuthenticateDefaultTenant(CancellationToken cancellationToken)
+	public async Task<AzureAuthentication> AuthenticateDefaultTenant(CancellationToken cancellationToken)
 	{
 		var defaultCloudToken = await GetAccessToken(cancellationToken);
 		var tokenCredentials = new TokenCredentials(defaultCloudToken.Token);
@@ -83,21 +81,25 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 			mainTenant.TenantId,
 			AzureEnvironment.AzureGlobalCloud);
 
-		return Microsoft.Azure.Management.Fluent.Azure
-			.Configure()
-			.WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-			.Authenticate(azureCredentials);
+		return new AzureAuthentication
+		{
+			AuthenticatedToken = defaultCloudToken,
+			AzureClient = Microsoft.Azure.Management.Fluent.Azure
+				.Configure()
+				.WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+				.Authenticate(azureCredentials),
+		};
 	}
 
 	/// <inheritdoc />
-	public Task<IAuthenticated> Authenticate(ITenant tenant, CancellationToken cancellationToken) =>
+	public Task<AzureAuthentication> Authenticate(ITenant tenant, CancellationToken cancellationToken) =>
 		Authenticate(tenant.TenantId, cancellationToken);
 
 	/// <inheritdoc />
-	public Task<IAuthenticated> Authenticate(ISubscription subscription, CancellationToken cancellationToken) =>
+	public Task<AzureAuthentication> Authenticate(ISubscription subscription, CancellationToken cancellationToken) =>
 		Authenticate(subscription.Inner.TenantId, cancellationToken);
 
-	private static async Task<IAuthenticated> Authenticate(string tenantId,CancellationToken cancellationToken)
+	private static async Task<AzureAuthentication> Authenticate(string tenantId, CancellationToken cancellationToken)
 	{
 		var accessToken = await GetAccessToken(tenantId, cancellationToken);
 		var tokenCredentials = new TokenCredentials(accessToken.Token);
@@ -116,9 +118,13 @@ public sealed class AzureAuthenticationService : IAzureAuthenticationService
 			selectedTenant.TenantId,
 			AzureEnvironment.AzureGlobalCloud);
 
-		return Microsoft.Azure.Management.Fluent.Azure
-			.Configure()
-			.WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-			.Authenticate(azureCredentials);
+		return new AzureAuthentication
+		{
+			AuthenticatedToken = accessToken,
+			AzureClient = Microsoft.Azure.Management.Fluent.Azure
+				.Configure()
+				.WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+				.Authenticate(azureCredentials),
+		};
 	}
 }

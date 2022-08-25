@@ -1,0 +1,44 @@
+<Page x:Class="MarvinBrouwer.ServiceBusManager.Dialogs.ReloadDialog"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MarvinBrouwer.ServiceBusManager.Dialogs"
+      mc:Ignorable="d"
+      d:DesignWidth="500"
+      Title="RequeueDialog">
+
+	<Page.Background>
+		<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
+	</Page.Background>
+
+	<StackPanel 
+		MinHeight="100">
+		<StackPanel Orientation="Horizontal" Margin="10,10,10,00">
+			<Image Source="/Resources/Icons/warning.png"
+			       Width="24"
+			       Height="24"
+			       Margin="0, 0, 10,0"></Image>
+			<StackPanel>
+				<TextBlock 
+					TextWrapping="Wrap"
+					FontWeight="ExtraBold">
+					Warning!
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap" FontWeight="Bold">
+					Reloading all azure subscriptions.
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap" Width="500">
+					Doing so will also re-authenticate all tenants,
+					just in case a tenant get's added/removed.
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap">
+					This may take a while...
+				</TextBlock>
+				<TextBlock TextWrapping="Wrap" Margin="0,10,0,00">
+					Are you sure you want to do this?
+				</TextBlock>
+			</StackPanel>
+		</StackPanel>
+	</StackPanel>
+</Page>
