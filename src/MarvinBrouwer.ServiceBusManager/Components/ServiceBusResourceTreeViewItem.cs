@@ -7,15 +7,15 @@ namespace MarvinBrouwer.ServiceBusManager.Components;
 /// <summary>
 /// <see cref="BaseTreeViewItem"/> item for a specific azure <see cref="IResource"/>
 /// </summary>
-public abstract class ResourceTreeViewItem : BaseTreeViewItem
+public abstract class ServiceBusResourceTreeViewItem : AzureResourceTreeViewItem
 {
 	/// <summary>
 	/// Selected resource ot use for actions
 	/// </summary>
-	public IAzureResource<IResource> Resource { get; }
+	public IAzureResource Resource { get; }
 
-	/// <inheritdoc cref="ResourceTreeViewItem"/>
-	protected internal ResourceTreeViewItem(IAzureResource<IResource> resource)
+	/// <inheritdoc cref="ServiceBusResourceTreeViewItem"/>
+	protected internal ServiceBusResourceTreeViewItem(IAzureResource resource): base(resource.AzureSubscription)
 	{
 		Resource = resource;
 	}

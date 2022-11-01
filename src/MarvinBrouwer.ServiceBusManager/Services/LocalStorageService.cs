@@ -3,10 +3,6 @@ using Azure.Messaging.ServiceBus;
 using ICSharpCode.SharpZipLib.Zip;
 
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
-
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.ServiceBus.Fluent;
-
 using MimeTypes;
 
 using System;
@@ -61,7 +57,7 @@ public sealed class LocalStorageService : ILocalStorageService
 
 	/// <inheritdoc />
 	public async Task StoreResourceDownload(
-		DateTime timestamp, IAzureResource<IResource> resource,
+		DateTime timestamp, IAzureResource resource,
 		IReadOnlyList<ServiceBusReceivedMessage> messages, CancellationToken cancellationToken)
 	{
 		var archiveFileName = GetArchiveFileName(resource, timestamp);
@@ -132,18 +128,18 @@ public sealed class LocalStorageService : ILocalStorageService
 		return tempDir;
 	}
 
-	private static string GetArchiveFileName(IAzureResource<IResource> resource, DateTime timestamp)
+	private static string GetArchiveFileName(IAzureResource resource, DateTime timestamp)
 	{
 		var timestampMarker = timestamp.ToString(TimeStampFormat);
 
-		if (resource is IAzureResource<IQueue>)
-			return $"{resource.ServiceBus.Name} queue-{resource.Path} {timestampMarker}";
+		if (resource is Queue or QueueDeadLetter)
+			return $"{resource.ServiceBusName} queue-{resource.Path} {timestampMarker}";
 		if (resource is TopicSubscription topicSubscription)
-			return $"{resource.ServiceBus.Name} topic-{topicSubscription.Topic.Name} subscription-{resource.Path} {timestampMarker}";
+			return $"{resource.ServiceBusName} topic-{topicSubscription.TopicName} subscription-{resource.Path} {timestampMarker}";
 		if (resource is TopicSubscriptionDeadLetter topicSubscriptionDeadLetter)
-			return $"{resource.ServiceBus.Name} topic-{topicSubscriptionDeadLetter.Topic.Name} subscription-{resource.Path} {timestampMarker}";
+			return $"{resource.ServiceBusName} topic-{topicSubscriptionDeadLetter.TopicName} subscription-{resource.Path} {timestampMarker}";
 
-		return $"{resource.ServiceBus.Name} {resource.Path} {timestampMarker}";
+		return $"{resource.ServiceBusName} {resource.Path} {timestampMarker}";
 	}
 
 	private static bool IsDataFilePath(string filePath) =>

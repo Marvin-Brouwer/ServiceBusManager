@@ -2,27 +2,27 @@ using MarvinBrouwer.ServiceBusManager.Azure.Helpers;
 
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
+
 namespace MarvinBrouwer.ServiceBusManager.Azure.Models;
 
 /// <summary>
 /// Representation of a <see cref="IQueue"/>'s dead-letter Queue
 /// </summary>
-public sealed class QueueDeadLetter : AzureResource<IQueue>
+public sealed class QueueDeadLetter : AzureResource
 {
 	/// <inheritdoc cref="QueueDeadLetter"/>
-	public QueueDeadLetter(IServiceBusNamespace serviceBus, Queue queue)
+	public QueueDeadLetter(IAzureSubscription subscription, IServiceBusNamespace serviceBus, Queue queue)
 	{
-		ServiceBus = serviceBus;
-		InnerResource = queue.InnerResource;
+		AzureSubscription = subscription;
+		ServiceBusId = serviceBus.Id;
+		ServiceBusName = serviceBus.Name;
 
-		Queue = queue;
+		Key = queue.Key;
+		Id = queue.Id;
+		Name = queue.Name;
 	}
 
 	/// <inheritdoc />
-	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(InnerResource.Name);
-
-	/// <summary>
-	/// Reference to this <see cref="QueueDeadLetter"/>s parent <see cref="Models.Queue"/>
-	/// </summary>
-	public Queue Queue { get; }
+	public override string Path => DeadLetterNameHelper.FormatDeadLetterPath(Name);
 }

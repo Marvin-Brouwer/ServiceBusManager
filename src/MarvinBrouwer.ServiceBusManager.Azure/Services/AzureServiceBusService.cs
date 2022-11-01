@@ -1,31 +1,21 @@
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
 
+using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 using System.Runtime.CompilerServices;
 
-using ISubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
+using IAzureSubscription = Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription;
 
 namespace MarvinBrouwer.ServiceBusManager.Azure.Services;
 
 /// <inheritdoc />
 public sealed class AzureServiceBusService : IAzureServiceBusService
 {
-	private readonly IAzureAuthenticationService _authenticationService;
-
-	/// <inheritdoc cref="AzureServiceBusService" />
-	public AzureServiceBusService(IAzureAuthenticationService authenticationService)
-	{
-		_authenticationService = authenticationService;
-	}
-
 	/// <inheritdoc />
-	public async IAsyncEnumerable<ServiceBus> ListServiceBuses(ISubscription subscription, [EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<ServiceBus> ListServiceBuses(IAzure azure, IAzureSubscription subscription,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		
-		var credentials = await _authenticationService.Authenticate(subscription, cancellationToken);
-		var azure = credentials.WithSubscription(subscription.SubscriptionId);
-
 		var resourceGroups = await azure.ResourceGroups
 			.ListAsync(true, cancellationToken);
 		
@@ -36,60 +26,71 @@ public sealed class AzureServiceBusService : IAzureServiceBusService
 
 			foreach (var serviceBusNamespace in serviceBusNameSpaces.OrderBy(s => s.Name))
 			{
-				yield return new ServiceBus(serviceBusNamespace);
+				yield return new ServiceBus(subscription, serviceBusNamespace);
 			}
 		}
 
 	}
 
 	/// <inheritdoc />
-	public (IAsyncEnumerable<Queue> queues, IAsyncEnumerable<Topic> topics) ListServiceBusResources(ServiceBus serviceBus, CancellationToken cancellationToken)
+	public async Task<(IAsyncEnumerable<Queue> queues, IAsyncEnumerable<Topic> topics)> ListServiceBusResources(
+		IAzure azure, ServiceBus serviceBus, CancellationToken cancellationToken)
 	{
-		var queues = GetQueues(serviceBus.InnerResource, cancellationToken);
-		var topics = GetTopics(serviceBus.InnerResource, cancellationToken);
+		var serviceBusNamespace = await azure.ServiceBusNamespaces
+			.GetByIdAsync(serviceBus.Id, cancellationToken);
+
+		var queues = GetQueues(serviceBus.AzureSubscription, serviceBusNamespace, cancellationToken);
+		var topics = GetTopics(serviceBus.AzureSubscription, serviceBusNamespace, cancellationToken);
 
 		return (queues, topics);
 	}
 
 	/// <inheritdoc />
-	public IAsyncEnumerable<TopicSubscription> ListTopicSubscriptions(Topic topic, CancellationToken cancellationToken)
+	public async Task<IAsyncEnumerable<TopicSubscription>> ListTopicSubscriptions(IAzure azure, Topic topic, CancellationToken cancellationToken)
 	{
-		return GetSubscriptions(topic.ServiceBus, topic.InnerResource, cancellationToken);
+		var serviceBusNamespace = await azure.ServiceBusNamespaces
+			.GetByIdAsync(topic.ServiceBusId, cancellationToken);
+
+		return GetSubscriptions(topic.AzureSubscription, serviceBusNamespace, topic.Name, cancellationToken);
 	}
 
-	private static async IAsyncEnumerable<Queue> GetQueues(IServiceBusNamespace serviceBusNamespace, [EnumeratorCancellation] CancellationToken cancellationToken)
+	private static async IAsyncEnumerable<Queue> GetQueues(IAzureSubscription subscription, IServiceBusNamespace serviceBusNamespace, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var queues = await serviceBusNamespace.Queues
 			.ListAsync(true, cancellationToken);
 
 		foreach (var queue in queues.OrderBy(q => q.Name))
 		{
-			yield return new Queue(serviceBusNamespace, queue);
+			yield return new Queue(subscription, serviceBusNamespace, queue);
 		}
 	}
 
-	private static async IAsyncEnumerable<Topic> GetTopics(IServiceBusNamespace serviceBusNamespace, [EnumeratorCancellation] CancellationToken cancellationToken)
+	private static async IAsyncEnumerable<Topic> GetTopics(IAzureSubscription subscription, IServiceBusNamespace serviceBusNamespace, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var topics = await serviceBusNamespace.Topics
 			.ListAsync(true, cancellationToken);
 
 		foreach (var topic in topics.OrderBy(t => t.Name))
 		{
-			yield return new Topic(serviceBusNamespace, topic)
+			yield return new Topic(subscription, serviceBusNamespace, topic)
 			{
-				TopicSubscriptions = GetSubscriptions(serviceBusNamespace, topic, cancellationToken)
+				TopicSubscriptions = GetSubscriptions(subscription, serviceBusNamespace, topic.Name, cancellationToken)
 			};
 		}
 	}
 
-	private static async IAsyncEnumerable<TopicSubscription> GetSubscriptions(IServiceBusNamespace serviceBusNamespace, ITopic topic, [EnumeratorCancellation] CancellationToken cancellationToken)
+	private static async IAsyncEnumerable<TopicSubscription> GetSubscriptions(
+		IAzureSubscription subscription, IServiceBusNamespace serviceBusNamespace, string topicName,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
+		var topic = await serviceBusNamespace.Topics
+			.GetByNameAsync(topicName, cancellationToken);
 		var subscriptions = await topic.Subscriptions
 			.ListAsync(true, cancellationToken);
 
 		foreach (var topicSubscription in subscriptions.OrderBy(s => s.Name))
 		{
-			yield return new TopicSubscription(serviceBusNamespace, topic, topicSubscription);
+			yield return new TopicSubscription(subscription, serviceBusNamespace, topicName, topicSubscription);
 		}
 	}
 }

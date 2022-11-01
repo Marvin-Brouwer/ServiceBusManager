@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using MarvinBrouwer.ServiceBusManager.Azure.Models;
+using Microsoft.Azure.Management.Fluent;
 
 namespace MarvinBrouwer.ServiceBusManager.Services;
 
@@ -29,68 +31,74 @@ public sealed class AzureLandscapeRenderingService : IAzureLandscapeRenderingSer
 	}
 
 	/// <inheritdoc />
-	public async IAsyncEnumerable<SubscriptionTreeViewItem> LoadSubscriptions(
-		[EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<AzureSubscriptionTreeViewItem> LoadSubscriptions(
+		List<AzureConnection> azureConnections, [EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var subscriptions = await _subscriptionService
-			.ListSubscriptions(cancellationToken)
-			.ToListAsync(cancellationToken);
-		
 		var hasCleared = false;
-		foreach (var subscription in subscriptions)
-		{
-			if (!hasCleared) _azureLandscape.Items.Clear();
-			hasCleared = true;
+		var subscriptionTasks = new List<Task>();
 
-			var subscriptionTreeViewItem = new SubscriptionTreeViewItem(subscription);
-			
-			yield return subscriptionTreeViewItem;
-			_azureLandscape.Items.Add(subscriptionTreeViewItem);
+		foreach (var azureConnection in azureConnections)
+		{
+			var subscriptions = await _subscriptionService
+				.ListSubscriptions(azureConnection, cancellationToken)
+				.ToListAsync(cancellationToken);
+
+			foreach (var subscription in subscriptions)
+			{
+				if (!hasCleared) _azureLandscape.Items.Clear();
+				hasCleared = true;
+
+				var subscriptionTreeViewItem = new AzureSubscriptionTreeViewItem(subscription);
+
+				yield return subscriptionTreeViewItem;
+				_azureLandscape.Items.Add(subscriptionTreeViewItem);
+				var azureClient = azureConnection.AzureClient.WithSubscription(subscription.SubscriptionId);
+				subscriptionTasks.Add(LoadSubscriptionContents(azureClient, subscriptionTreeViewItem, cancellationToken));
+			}
 		}
 
-		foreach (SubscriptionTreeViewItem subscriptionTreeViewItem in _azureLandscape.Items)
-		{
-			await LoadSubscriptionContents(subscriptionTreeViewItem, cancellationToken);
-		}
+		await Task.WhenAll(subscriptionTasks);
 	}
 
 	/// <inheritdoc />
-	public async Task LoadSubscriptionContents(
-		SubscriptionTreeViewItem subscriptionTreeViewItem, CancellationToken cancellationToken)
+	public async Task LoadSubscriptionContents(IAzure azure,
+		AzureSubscriptionTreeViewItem azureSubscriptionTreeViewItem, CancellationToken cancellationToken)
 	{
-		subscriptionTreeViewItem.IsEnabled = false;
-		subscriptionTreeViewItem.IsExpanded = false;
+		azureSubscriptionTreeViewItem.IsEnabled = false;
+		azureSubscriptionTreeViewItem.IsExpanded = false;
 		var serviceBuses = await _serviceBusService
-			.ListServiceBuses(subscriptionTreeViewItem.Subscription, cancellationToken)
+			.ListServiceBuses(azure, azureSubscriptionTreeViewItem.Subscription, cancellationToken)
 			.ToListAsync(cancellationToken);
 		
 		var hasCleared = false;
+		var serviceBusTasks = new List<Task>();
 		foreach (var serviceBus in serviceBuses)
 		{
 			if (!hasCleared)
 			{
-				subscriptionTreeViewItem.Items.Clear();
-				subscriptionTreeViewItem.IsEnabled = true;
+				azureSubscriptionTreeViewItem.Items.Clear();
+				azureSubscriptionTreeViewItem.IsEnabled = true;
 				hasCleared = true;
 			}
 
 			var serviceBusTreeViewItem = new ServiceBusTreeViewItem(serviceBus);
-			subscriptionTreeViewItem.Items.Add(serviceBusTreeViewItem);
-			
-			await LoadServiceBusResources(serviceBusTreeViewItem, cancellationToken);
+			azureSubscriptionTreeViewItem.Items.Add(serviceBusTreeViewItem);
+
+			serviceBusTasks.Add(LoadServiceBusResources(azure, serviceBusTreeViewItem, cancellationToken));
 		}
-		
-		subscriptionTreeViewItem.IsEnabled = true;
+
+		azureSubscriptionTreeViewItem.IsEnabled = true;
+		await Task.WhenAll(serviceBusTasks);
 	}
 
 	/// <inheritdoc />
-	public async Task LoadServiceBusResources(
+	public async Task LoadServiceBusResources(IAzure azure,
 		ServiceBusTreeViewItem serviceBusTreeViewItem, CancellationToken cancellationToken)
 	{
 		serviceBusTreeViewItem.IsEnabled = false;
 		serviceBusTreeViewItem.IsExpanded = false;
-		var (queues, topics) = _serviceBusService
-			.ListServiceBusResources(serviceBusTreeViewItem.ServiceBus, cancellationToken);
+		var (queues, topics) = await _serviceBusService
+			.ListServiceBusResources(azure, serviceBusTreeViewItem.ServiceBus, cancellationToken);
 
 		var queueList = await queues
 			.ToListAsync(cancellationToken);
@@ -118,6 +126,7 @@ public sealed class AzureLandscapeRenderingService : IAzureLandscapeRenderingSer
 			return;
 		}
 
+		var topicTasks = new List<Task>();
 		foreach (var topic in topicList)
 		{
 			if (!hasCleared)
@@ -129,20 +138,22 @@ public sealed class AzureLandscapeRenderingService : IAzureLandscapeRenderingSer
 
 			var topicTreeViewItem = new TopicTreeViewItem(topic);
 			serviceBusTreeViewItem.Items.Add(topicTreeViewItem);
-			
-			await LoadTopicSubscriptions(topicTreeViewItem, cancellationToken);
+
+			topicTasks.Add(LoadTopicSubscriptions(azure, topicTreeViewItem, cancellationToken));
 		}
-		
+
 		serviceBusTreeViewItem.IsEnabled = true;
+		await Task.WhenAll(topicTasks);
 	}
 
 	/// <inheritdoc />
-	public async Task LoadTopicSubscriptions(
+	public async Task LoadTopicSubscriptions(IAzure azure,
 		TopicTreeViewItem topicTreeViewItem, CancellationToken cancellationToken)
 	{
 		topicTreeViewItem.IsEnabled = false;
 		topicTreeViewItem.IsExpanded = false;
-		var topicSubscriptions = _serviceBusService.ListTopicSubscriptions(topicTreeViewItem.Topic, cancellationToken);
+		var topicSubscriptions = await _serviceBusService
+			.ListTopicSubscriptions(azure, topicTreeViewItem.Topic, cancellationToken);
 
 		var hasCleared = false;
 

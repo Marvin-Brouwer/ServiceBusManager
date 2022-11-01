@@ -1,9 +1,6 @@
 using Azure.Messaging.ServiceBus;
 
 using MarvinBrouwer.ServiceBusManager.Azure.Models;
-
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -35,7 +32,7 @@ public interface ILocalStorageService
 	/// Store all the <paramref name="messages"/> in the download folder.
 	/// </summary>
 	Task StoreResourceDownload(
-		DateTime timestamp, IAzureResource<IResource> resource,
+		DateTime timestamp, IAzureResource resource,
 		IReadOnlyList<ServiceBusReceivedMessage> messages, CancellationToken cancellationToken);
 
 	/// <summary>

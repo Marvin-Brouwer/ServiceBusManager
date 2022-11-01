@@ -47,16 +47,23 @@ public partial class Dialog
 		return dialog.ShowDialog() ?? false;
 	}
 
+	internal static bool ConfirmReload()
+	{
+		var dialog = new Dialog($"Reload all subscriptions?", new ReloadDialog());
+
+		return dialog.ShowDialog() ?? false;
+	}
+
 	private static string FormatTitle(BaseTreeViewItem item)
 	{
 		return item switch
 		{
 			QueueDeadLetterTreeViewItem deadLetter =>
-				deadLetter.Queue.InnerResource.Name + "/" +
+				deadLetter.Queue.Name + "/" +
 				ApplicationConstants.DeadLetterPathSegment,
 			TopicSubscriptionDeadLetterTreeViewItem deadLetter =>
-				deadLetter.Topic.InnerResource.Name + "/" +
-				deadLetter.TopicSubscription.InnerResource.Name + "/" +
+				deadLetter.Topic.Name + "/" +
+				deadLetter.TopicSubscription.Name + "/" +
 				ApplicationConstants.DeadLetterPathSegment,
 			_ => item.DisplayName
 		};

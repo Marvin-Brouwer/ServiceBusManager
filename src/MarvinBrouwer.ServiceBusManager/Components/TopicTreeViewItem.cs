@@ -5,15 +5,15 @@ using System;
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
 /// <inheritdoc />
-public sealed class TopicTreeViewItem : ResourceTreeViewItem
+public sealed class TopicTreeViewItem : ServiceBusResourceTreeViewItem
 {
 	internal TopicTreeViewItem(Topic topic) : base(topic)
 	{
-		DisplayName = topic.InnerResource.Name;
+		DisplayName = topic.Name;
 		Label = nameof(topic);
 		IconUrl = "/Resources/Icons/topic.png";
 
-		Identifier = $"ID{new Guid(topic.InnerResource.Key):N}";
+		Identifier = $"ID{new Guid(topic.Key):N}";
 		SetHeaderValue();
 
 		Topic = topic;

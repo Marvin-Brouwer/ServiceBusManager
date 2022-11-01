@@ -4,15 +4,15 @@ using System;
 
 namespace MarvinBrouwer.ServiceBusManager.Components;
 
-internal sealed class QueueTreeViewItem : ResourceTreeViewItem
+internal sealed class QueueTreeViewItem : ServiceBusResourceTreeViewItem
 {
 	public QueueTreeViewItem(Queue queue) : base(queue)
 	{
-		DisplayName = queue.InnerResource.Name;
+		DisplayName = queue.Name;
 		Label = nameof(queue);
 		IconUrl = "/Resources/Icons/queue.png";
 
-		Identifier = $"ID{new Guid(queue.InnerResource.Key):N}";
+		Identifier = $"ID{new Guid(queue.Key):N}";
 		SetHeaderValue();
 		IsEnabled = true;
 		
@@ -26,14 +26,14 @@ internal sealed class QueueTreeViewItem : ResourceTreeViewItem
 	public override bool CanRequeue => false;
 }
 
-internal sealed class QueueDeadLetterTreeViewItem : ResourceTreeViewItem
+internal sealed class QueueDeadLetterTreeViewItem : ServiceBusResourceTreeViewItem
 {
 	public QueueDeadLetterTreeViewItem(Queue queue) : base(queue)
 	{
 		DisplayName = ApplicationConstants.DeadLetterPathSegment;
 		IconUrl = "/Resources/Icons/dead-letter.png";
 
-		Identifier = $"ID{new Guid(queue.InnerResource.Key):N}_dl";
+		Identifier = $"ID{new Guid(queue.Key):N}_dl";
 		IsEnabled = true;
 		SetHeaderValue();
 
